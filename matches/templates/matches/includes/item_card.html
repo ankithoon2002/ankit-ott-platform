@@ -3,7 +3,7 @@
 {% elif item.media_type %}
     <a href="{% url 'watch_movie' item.media_type item.id %}" class="block bg-slate-900 rounded-xl overflow-hidden border border-slate-800 hover:border-blue-500/50 transition-all duration-300 group">
 {% elif item.category == 'movie' or item.category == 'MOVIE' or item.category == 'anime' or item.category == 'kids' %}
-    <a href="{% url 'watch_movie' 'movie' item.id %}" class="block bg-slate-900 rounded-xl overflow-hidden border border-slate-800 hover:border-blue-500/50 transition-all duration-300 group">
+    <a href="{% url 'watch_movie' item.category item.id %}" class="block bg-slate-900 rounded-xl overflow-hidden border border-slate-800 hover:border-blue-500/50 transition-all duration-300 group">
 {% elif item.category == 'TV' %}
     <a href="{% url 'watch_movie' 'tv' item.id %}" class="block bg-slate-900 rounded-xl overflow-hidden border border-slate-800 hover:border-blue-500/50 transition-all duration-300 group">
 {% else %}

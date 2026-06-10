@@ -174,7 +174,16 @@
                         </button>
                     </div>
                 {% else %}
-                    <iframe id="mainPlayerFrame" class="w-full h-full" src="{{ match.server2_url }}" frameborder="0" scrolling="NO" allowfullscreen="true" width="100%" height="100%"></iframe>
+                    {% if match.server2_url %}
+                        <iframe id="mainPlayerFrame" class="w-full h-full" src="{{ match.server2_url }}" frameborder="0" scrolling="NO" allowfullscreen="true" width="100%" height="100%"></iframe>
+                    {% else %}
+                        <div class="w-full h-full flex flex-col items-center justify-center bg-slate-900 text-slate-400 p-8 text-center">
+                            <svg class="w-16 h-16 mb-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            <h2 class="text-xl font-bold text-white mb-2">Video Not Found</h2>
+                            <p class="text-sm">We couldn't find the streaming source for this content. Please try another server or check back later.</p>
+                            <a href="{% url 'home' %}" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold transition">Back to Home</a>
+                        </div>
+                    {% endif %}
                 {% endif %}
             </div>
 
@@ -256,18 +265,17 @@
                 </p>
             </div>
 
-            <!-- You May Also Like Section -->
             <div class="px-4 lg:px-0 pt-8">
                 <h3 class="text-xl font-black text-white mb-6 uppercase tracking-tighter flex items-center">
                     <span class="w-1.5 h-6 bg-blue-600 mr-3 rounded-full"></span>
-                    You May Also Like
+                    Related Movies / Recommended Shows
                 </h3>
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
-                    {% for suggestion in suggested_matches %}
-                    <a href="{% url 'watch_match' suggestion.id %}" class="group block bg-slate-900/40 border border-slate-800 rounded-2xl overflow-hidden hover:border-blue-500/50 transition-all duration-300 transform hover:-translate-y-1">
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {% for movie in related_movies %}
+                    <a href="{% url 'watch_movie' movie.category movie.tmdb_id|default:movie.id %}" class="group block bg-slate-900/40 border border-slate-800 rounded-2xl overflow-hidden hover:border-blue-500/50 transition-all duration-300 transform hover:-translate-y-1">
                         <div class="aspect-[2/3] relative overflow-hidden">
-                            {% if suggestion.poster_url %}
-                            <img src="{{ suggestion.poster_url }}" alt="{{ suggestion.title }}" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                            {% if movie.poster_url %}
+                            <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
                             {% else %}
                             <div class="w-full h-full bg-slate-800 flex items-center justify-center">
                                 <svg class="w-12 h-12 text-slate-700" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"/></svg>
@@ -275,16 +283,16 @@
                             {% endif %}
                             <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent opacity-60"></div>
                             <div class="absolute bottom-2 left-2 right-2">
-                                <span class="px-2 py-0.5 bg-blue-600/80 backdrop-blur-sm text-[8px] font-black text-white rounded uppercase">{{ suggestion.get_category_display }}</span>
+                                <span class="px-2 py-0.5 bg-blue-600/80 backdrop-blur-sm text-[8px] font-black text-white rounded uppercase">{{ movie.get_category_display }}</span>
                             </div>
                         </div>
                         <div class="p-3">
-                            <h4 class="text-xs font-bold text-white truncate group-hover:text-blue-400 transition">{{ suggestion.title }}</h4>
+                            <h4 class="text-xs font-bold text-white truncate group-hover:text-blue-400 transition">{{ movie.title }}</h4>
                             <p class="text-[10px] text-slate-500 mt-1">Watch Now</p>
                         </div>
                     </a>
                     {% empty %}
-                    <p class="text-slate-500 text-sm">No recommendations available.</p>
+                    <p class="text-slate-500 text-sm">No related content available.</p>
                     {% endfor %}
                 </div>
             </div>

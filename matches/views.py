@@ -247,92 +247,22 @@ def fetch_live_cricket_score(match):
 
 
 def watch_movie(request, content_type, tmdb_id):
-    TMDB_API_KEY = '8265bd1679663a7ea12ac168da84d2e8'
+    # PRIORITIZE DATABASE LOOKUP
+    match_item = Match.objects.filter(id=tmdb_id).first()
+    if not match_item:
+        match_item = Match.objects.filter(tmdb_id=tmdb_id).first()
     
-    title = ""
-    overview = ""
-    poster_url = ""
-    genres = []
-    imdb_id = None
-
-    if content_type == 'movie':
-        details_url = f"https://api.themoviedb.org/3/movie/{tmdb_id}?api_key={TMDB_API_KEY}"
-    else:  # tv
-        details_url = f"https://api.themoviedb.org/3/tv/{tmdb_id}?api_key={TMDB_API_KEY}"
-    
-    try:
-        response = requests.get(details_url, timeout=3)
-        if response.status_code == 200:
-            data = response.json()
-            title = data.get('title') or data.get('name')
-            overview = data.get('overview', "")
-            poster_path = data.get('poster_path')
-            poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else None
-            genres = [g.get('name') for g in data.get('genres', [])]
-            imdb_id = data.get('imdb_id')
-            
-            # For TV shows, imdb_id might be in external_ids
-            if not imdb_id:
-                ext_url = f"https://api.themoviedb.org/3/{content_type}/{tmdb_id}/external_ids?api_key={TMDB_API_KEY}"
-                ext_resp = requests.get(ext_url, timeout=3)
-                if ext_resp.status_code == 200:
-                    imdb_id = ext_resp.json().get('imdb_id')
-    except Exception:
-        title = "Content Details Unavailable"
-        overview = "Description is currently unavailable."
-
-    # Server configurations
-    # Server 1 (PrMovies Style - TMDB): https://vidlink.pro/embed/movie/{tmdb_id}
-    server1_url = f"https://vidlink.pro/embed/{content_type}/{tmdb_id}"
-    if content_type == 'tv':
-        server1_url += "/1/1"
-
-    # Server 2 (HDMovies Style - IMDB): https://gemma416okl.com/play/{imdb_id}
-    # Fallback to https://vidsrc.to/embed/movie/{tmdb_id}
-    if imdb_id:
-        server2_url = f"https://gemma416okl.com/play/{imdb_id}"
-    else:
-        server2_url = f"https://vidsrc.to/embed/{content_type}/{tmdb_id}"
-        if content_type == 'tv':
-            server2_url += "/1/1"
-
-    # Database override
-    download_url = None
-    match_item = None
-    try:
-        match_item = Match.objects.filter(Q(tmdb_id=tmdb_id) | Q(imdb_id=imdb_id) | Q(title=title)).first()
-        if match_item:
-            download_url = match_item.download_url
-            if match_item.server2_url:
-                server2_url = match_item.server2_url
-    except Exception:
-        pass
-
-    # Smart Recommendation System
-    suggested_matches = []
+    # FETCH RELATED MOVIES (Up to 12)
+    related_movies = []
     if match_item:
-        suggested_matches = Match.objects.filter(category=match_item.category).exclude(id=match_item.id)[:6]
-    else:
-        # Fallback based on content type
-        fallback_cat = 'movie' if content_type == 'movie' else 'TOP_WEB_SERIES'
-        suggested_matches = Match.objects.filter(category=fallback_cat)[:6]
+        related_movies = Match.objects.filter(category=match_item.category).exclude(id=match_item.id)[:12]
 
     context = {
-        'title': title,
-        'overview': overview,
-        'poster_url': poster_url,
-        'genres': genres,
-        'tmdb_id': tmdb_id,
-        'imdb_id': imdb_id,
-        'server1_url': server1_url,
-        'server2_url': server2_url,
-        'content_type': content_type,
-        'download_url': download_url,
-        'suggested_matches': suggested_matches,
         'match': match_item,
+        'related_movies': related_movies,
     }
 
-    return render(request, 'matches/movie_detail.html', context)
+    return render(request, 'matches/watch.html', context)
 
 
 def watch_match(request, match_id):
