@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Who's Watching? - StreamPulse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; }
+        .profile-card:hover img { border-color: #ef4444; transform: scale(1.05); }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen">
+    <h1 class="text-3xl md:text-5xl font-bold mb-12 text-center">Who's watching?</h1>
+    
+    <div class="flex flex-wrap justify-center gap-4 md:gap-8 mb-16 px-4">
+        {% for profile in profiles %}
+        <form method="post" class="profile-card text-center cursor-pointer group">
+            {% csrf_token %}
+            <input type="hidden" name="profile_id" value="{{ profile.id }}">
+            <button type="submit" class="focus:outline-none">
+                <div class="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-lg overflow-hidden border-4 border-transparent transition-all duration-300 mb-2 md:mb-4">
+                    <img src="{{ profile.avatar }}" alt="{{ profile.name }}" class="w-full h-full object-cover">
+                </div>
+                <span class="text-slate-400 group-hover:text-white text-lg md:text-xl transition-colors">{{ profile.name }}</span>
+            </button>
+        </form>
+        {% endfor %}
+
+        {% if profiles|length < 4 %}
+        <button onclick="document.getElementById('add-profile-modal').classList.remove('hidden')" class="text-center group">
+            <div class="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-lg border-4 border-dashed border-slate-700 flex items-center justify-center hover:border-slate-400 transition-all duration-300 mb-2 md:mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 md:h-16 md:w-16 text-slate-600 group-hover:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+            </div>
+            <span class="text-slate-500 group-hover:text-slate-300 text-lg md:text-xl transition-colors">Add Profile</span>
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- Add Profile Modal -->
+    <div id="add-profile-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center hidden z-50">
+        <div class="bg-slate-900 p-8 rounded-2xl border border-slate-800 w-full max-w-md">
+            <h2 class="text-2xl font-bold mb-6">Add Profile</h2>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Profile Name</label>
+                    <input type="text" name="name" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:border-red-600 transition text-white">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-slate-400 mb-3">Choose Avatar</label>
+                    <div class="grid grid-cols-4 gap-4">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="avatar" value="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="hidden peer" checked>
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="rounded-lg border-2 border-transparent peer-checked:border-red-600">
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="avatar" value="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka" class="hidden peer">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka" class="rounded-lg border-2 border-transparent peer-checked:border-red-600">
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="avatar" value="https://api.dicebear.com/7.x/avataaars/svg?seed=Sawyer" class="hidden peer">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sawyer" class="rounded-lg border-2 border-transparent peer-checked:border-red-600">
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="avatar" value="https://api.dicebear.com/7.x/avataaars/svg?seed=Lilly" class="hidden peer">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Lilly" class="rounded-lg border-2 border-transparent peer-checked:border-red-600">
+                        </label>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <button type="button" onclick="document.getElementById('add-profile-modal').classList.add('hidden')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 rounded-lg transition">Cancel</button>
+                    <button type="submit" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-lg transition">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

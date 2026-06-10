@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watching: {{ title }} - StreamPulse</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; overflow-x: hidden; }
+        .video-container { aspect-ratio: 16 / 9; background: #000; position: relative; }
+        .video-controls {
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 10;
+        }
+        .video-container:hover .video-controls {
+            opacity: 1;
+        }
+        .control-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s;
+        }
+        .control-btn:hover {
+            transform: scale(1.1);
+            color: #3b82f6;
+        }
+        .control-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+        .progress-container {
+            flex: 1;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+        .progress-bar {
+            height: 100%;
+            background: #3b82f6;
+            border-radius: 2px;
+            width: 0%;
+        }
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100px;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: rgba(255,255,255,0.2);
+            height: 4px;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #3b82f6;
+            border-radius: 50%;
+        }
+        .navbar-dark-custom {
+            background-color: #020617 !important;
+            border-bottom: 1px solid #1e293b;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-dark-custom sticky-top z-50 py-2">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand font-bold text-xl tracking-tighter" href="{% url 'home' %}">
+                <span class="text-red-600">STREAM</span><span class="text-white">PULSE</span>
+            </a>
+            
+            <div class="hidden md:flex items-center space-x-6 ml-8">
+                <a href="{% url 'home' %}" class="text-white hover:text-red-500 font-bold text-xs transition">Movies</a>
+                <a href="{% url 'home' %}#web-series-db" class="text-white/70 hover:text-white font-bold text-xs transition">Web Series</a>
+                <a href="{% url 'home' %}#anime-universe" class="text-white/70 hover:text-white font-bold text-xs transition">Anime</a>
+                <a href="{% url 'home' %}#kids-cartoons" class="text-white/70 hover:text-white font-bold text-xs transition">Kids</a>
+            </div>
+            
+            <div class="d-flex align-items-center ms-auto">
+                {% if user.is_authenticated %}
+                    <div class="dropdown">
+                        <button class="btn border-0 d-flex align-items-center space-x-2 text-white dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <img src="{{ active_profile.avatar|default:'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix' }}" alt="Profile" class="w-7 h-7 rounded-full">
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
+                            <li><a class="dropdown-item px-4 py-2 text-sm transition" href="{% url 'my_watchlist' %}">My Watchlist</a></li>
+                            <li><a class="dropdown-item px-4 py-2 text-sm transition" href="{% url 'select_profile' %}">Switch Profile</a></li>
+                            <li><hr class="dropdown-divider border-slate-800"></li>
+                            <li><a class="dropdown-item px-4 py-2 text-sm text-red-500 transition" href="{% url 'logout' %}">Logout</a></li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-sm btn-danger">Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-fluid py-4 max-w-6xl mx-auto">
+        <div class="video-container shadow-2xl rounded-xl overflow-hidden mb-6 group/player">
+            <video id="native-video-player" class="w-full h-full object-contain hidden" preload="auto">
+                <source src="" type="video/mp4">
+            </video>
+            <iframe id="video-player" class="w-full h-full" src="{{ server2_url }}" frameborder="0" allowfullscreen></iframe>
+            
+            <!-- Custom Controls Overlay (Only for native video) -->
+            <div id="custom-controls" class="video-controls group-hover/player:opacity-100 hidden">
+                <button class="control-btn" id="playPauseBtn" title="Play/Pause">
+                    <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    <svg id="pauseIcon" class="hidden" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                </button>
+
+                <button class="control-btn" id="skipBackBtn" title="Back 10s">
+                    <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05 1-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
+                    <span class="text-[8px] absolute mt-1">10</span>
+                </button>
+
+                <button class="control-btn" id="skipForwardBtn" title="Forward 10s">
+                    <svg viewBox="0 0 24 24"><path d="M11.5 8c2.65 0 5.05 1 6.9 2.6L22 7v9h-9l3.62-3.62c-1.39-1.16-3.16-1.88-5.12-1.88-3.54 0-6.55 2.31-7.6 5.5l-2.37-.78C2.92 11.03 6.85 8 11.5 8z"/></svg>
+                    <span class="text-[8px] absolute mt-1">10</span>
+                </button>
+
+                <div class="text-xs font-mono text-white min-w-[100px]" id="timeDisplay">0:00 / 0:00</div>
+
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+
+                <div class="volume-container">
+                    <button class="control-btn" id="muteBtn" title="Mute/Unmute">
+                        <svg id="volumeIcon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                        <svg id="muteIcon" class="hidden" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+                    </button>
+                    <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="1">
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4 mb-8 bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+            <button onclick="switchServer('{{ server2_url }}', 2)" id="btn-server-2" class="flex-1 py-3 px-4 rounded-lg font-bold text-sm transition-all bg-blue-600 text-white shadow-lg shadow-blue-900/20">
+                Server 2 (Speedostream/Native)
+            </button>
+            <button onclick="switchServer('{{ server1_url }}', 1)" id="btn-server-1" class="flex-1 py-3 px-4 rounded-lg font-bold text-sm transition-all bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white">
+                Server 1 (External Iframe)
+            </button>
+        </div>
+
+        <div class="px-2">
+            <div class="flex flex-col md:flex-row justify-between items-start mb-6">
+                <div class="mb-4 md:mb-0">
+                    <h1 class="text-2xl lg:text-3xl font-black">{{ title }}</h1>
+                    <div class="flex items-center space-x-4 mt-2 text-slate-400 text-sm">
+                        <span class="bg-red-600 text-white px-2 py-0.5 rounded text-[10px] font-bold">HD</span>
+                        <span>Full Streaming</span>
+                        {% if genres %}
+                        <span>•</span>
+                        <span>{% for genre in genres %}{{ genre }}{% if not forloop.last %}, {% endif %}{% endfor %}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full md:w-auto">
+                    {% if content_type == 'movie' or content_type == 'anime' or content_type == 'kids' %}
+                        {% if download_url %}
+                        <a href="{{ download_url }}" download class="flex-1 md:flex-none bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold text-sm text-center flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            📥 Download to Mobile (VLC/MX Player)
+                        </a>
+                        {% else %}
+                        <a href="#" onclick="alert('Download link will be available soon!'); return false;" class="flex-1 md:flex-none bg-green-600/50 hover:bg-green-700/50 text-white/70 px-6 py-2 rounded-lg font-bold text-sm text-center flex items-center justify-center cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            📥 Download to Mobile (VLC/MX Player)
+                        </a>
+                        {% endif %}
+                    {% endif %}
+                    <button class="flex-1 md:flex-none bg-slate-800 px-6 py-2 rounded-lg font-bold text-sm">Share</button>
+                </div>
+            </div>
+
+            <div class="mt-8">
+                <h3 class="text-lg font-bold mb-3">About this {{ content_type|title }}</h3>
+                <p class="text-slate-400 leading-relaxed text-sm">
+                    {{ overview }}
+                </p>
+            </div>
+
+            <!-- You May Also Like Section -->
+            <div class="pt-12">
+                <h3 class="text-xl font-black text-white mb-6 uppercase tracking-tighter flex items-center">
+                    <span class="w-1.5 h-6 bg-red-600 mr-3 rounded-full"></span>
+                    You May Also Like
+                </h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {% for suggestion in suggested_matches %}
+                    <a href="{% if suggestion.tmdb_id %}{% url 'watch_movie' 'movie' suggestion.tmdb_id %}{% else %}{% url 'watch_match' suggestion.id %}{% endif %}" class="group block bg-slate-900/40 border border-slate-800 rounded-2xl overflow-hidden hover:border-red-500/50 transition-all duration-300 transform hover:-translate-y-1">
+                        <div class="aspect-[2/3] relative overflow-hidden">
+                            {% if suggestion.poster_url %}
+                            <img src="{{ suggestion.poster_url }}" alt="{{ suggestion.title }}" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                            {% else %}
+                            <div class="w-full h-full bg-slate-800 flex items-center justify-center">
+                                <svg class="w-12 h-12 text-slate-700" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"/></svg>
+                            </div>
+                            {% endif %}
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent opacity-60"></div>
+                        </div>
+                        <div class="p-3 text-center">
+                            <h4 class="text-[10px] font-bold text-white truncate group-hover:text-red-400 transition">{{ suggestion.title }}</h4>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <p class="text-slate-500 text-sm">No recommendations available.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function switchServer(url, serverNum) {
+            const iframePlayer = document.getElementById('video-player');
+            const nativeVideo = document.getElementById('native-video-player');
+            const customControls = document.getElementById('custom-controls');
+            
+            // Check if URL is a direct video file (.mp4, .mkv, .m3u8 etc)
+            const isDirectVideo = url.match(/\.(mp4|mkv|m3u8|webm|ogv)$|googlevideo|speedostream/i);
+            
+            if (isDirectVideo) {
+                iframePlayer.classList.add('hidden');
+                nativeVideo.classList.remove('hidden');
+                customControls.classList.remove('hidden');
+                
+                nativeVideo.src = url;
+                nativeVideo.load();
+                // Play logic handled by user interaction or auto-play if allowed
+            } else {
+                iframePlayer.classList.remove('hidden');
+                nativeVideo.classList.add('hidden');
+                customControls.classList.add('hidden');
+                
+                iframePlayer.src = url;
+                nativeVideo.pause();
+            }
+            
+            // Update button styles
+            const btn1 = document.getElementById('btn-server-1');
+            const btn2 = document.getElementById('btn-server-2');
+            
+            if (serverNum === 1) {
+                btn1.classList.remove('bg-slate-800', 'text-slate-400');
+                btn1.classList.add('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-900/20');
+                
+                btn2.classList.remove('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-900/20');
+                btn2.classList.add('bg-slate-800', 'text-slate-400');
+            } else {
+                btn2.classList.remove('bg-slate-800', 'text-slate-400');
+                btn2.classList.add('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-900/20');
+                
+                btn1.classList.remove('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-900/20');
+                btn1.classList.add('bg-slate-800', 'text-slate-400');
+            }
+        }
+
+        /**
+         * Professional Custom Video Player Controller
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            const video = document.getElementById('native-video-player');
+            if (!video) return;
+
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            const playIcon = document.getElementById('playIcon');
+            const pauseIcon = document.getElementById('pauseIcon');
+            const skipBackBtn = document.getElementById('skipBackBtn');
+            const skipForwardBtn = document.getElementById('skipForwardBtn');
+            const muteBtn = document.getElementById('muteBtn');
+            const volumeIcon = document.getElementById('volumeIcon');
+            const muteIcon = document.getElementById('muteIcon');
+            const volumeSlider = document.getElementById('volumeSlider');
+            const progressBar = document.getElementById('progressBar');
+            const progressContainer = document.getElementById('progressContainer');
+            const timeDisplay = document.getElementById('timeDisplay');
+
+            function formatTime(seconds) {
+                const h = Math.floor(seconds / 3600);
+                const m = Math.floor((seconds % 3600) / 60);
+                const s = Math.floor(seconds % 60);
+                if (h > 0) {
+                    return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                }
+                return `${m}:${s.toString().padStart(2, '0')}`;
+            }
+
+            function togglePlay() {
+                if (video.paused) {
+                    video.play();
+                    playIcon.classList.add('hidden');
+                    pauseIcon.classList.remove('hidden');
+                } else {
+                    video.pause();
+                    playIcon.classList.remove('hidden');
+                    pauseIcon.classList.add('hidden');
+                }
+            }
+
+            playPauseBtn.addEventListener('click', togglePlay);
+            video.addEventListener('click', togglePlay);
+
+            skipBackBtn.addEventListener('click', () => video.currentTime -= 10);
+            skipForwardBtn.addEventListener('click', () => video.currentTime += 10);
+
+            muteBtn.addEventListener('click', () => {
+                video.muted = !video.muted;
+                if (video.muted) {
+                    volumeIcon.classList.add('hidden');
+                    muteIcon.classList.remove('hidden');
+                    volumeSlider.value = 0;
+                } else {
+                    volumeIcon.classList.remove('hidden');
+                    muteIcon.classList.add('hidden');
+                    volumeSlider.value = video.volume;
+                }
+            });
+
+            volumeSlider.addEventListener('input', (e) => {
+                video.volume = e.target.value;
+                video.muted = video.volume === 0;
+                if (video.muted) {
+                    volumeIcon.classList.add('hidden');
+                    muteIcon.classList.remove('hidden');
+                } else {
+                    volumeIcon.classList.remove('hidden');
+                    muteIcon.classList.add('hidden');
+                }
+            });
+
+            video.addEventListener('timeupdate', () => {
+                const percent = (video.currentTime / video.duration) * 100;
+                progressBar.style.width = `${percent}%`;
+                timeDisplay.innerText = `${formatTime(video.currentTime)} / ${formatTime(video.duration || 0)}`;
+            });
+
+            progressContainer.addEventListener('click', (e) => {
+                const pos = (e.pageX - progressContainer.getBoundingClientRect().left) / progressContainer.offsetWidth;
+                video.currentTime = pos * video.duration;
+            });
+            
+            // Initial call to set correct UI based on current URL
+            switchServer('{{ server2_url|escapejs }}', 2);
+        });
+    </script>
+</body>
+</html>

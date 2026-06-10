@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - StreamPulse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+    <div class="bg-slate-900 p-8 rounded-2xl shadow-2xl border border-slate-800 w-full max-w-md">
+        <div class="text-center mb-8">
+             <span class="text-3xl font-bold text-red-600 tracking-tighter">STREAM<span class="text-white">PULSE</span></span>
+             <h2 class="text-xl mt-4 text-slate-400">Create a new account</h2>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-slate-400 mb-1">{{ field.label }}</label>
+                {{ field.errors }}
+                <input type="{{ field.field.widget.input_type|default:'text' }}" name="{{ field.name }}" 
+                       class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:border-red-600 transition text-white">
+                {% if field.help_text %}
+                    <p class="text-[10px] text-slate-500 mt-1">{{ field.help_text|safe }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-lg transition mt-4">
+                Register
+            </button>
+        </form>
+        <p class="mt-6 text-center text-slate-500">
+            Already have an account? <a href="{% url 'login' %}" class="text-red-500 hover:underline">Login</a>
+        </p>
+    </div>
+</body>
+</html>

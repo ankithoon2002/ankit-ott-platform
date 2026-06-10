@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamPulse - Live Sports Streaming</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .hero-gradient {
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 1)), url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=1920');
+            background-size: cover;
+            background-position: center;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+        /* Override Bootstrap dark background to match our theme */
+        .navbar-dark-custom {
+            background-color: #020617 !important;
+            border-bottom: 1px solid #1e293b;
+        }
+        .dropdown-menu-dark-custom {
+            background-color: #0f172a;
+            border: 1px solid #1e293b;
+        }
+        .dropdown-item:hover {
+            background-color: #1e293b;
+            color: white;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-dark-custom sticky-top z-50 py-3">
+        <div class="container-fluid max-w-7xl px-4 sm:px-6 lg:px-8">
+            <a class="navbar-brand font-bold text-2xl tracking-tighter" href="{% url 'home' %}">
+                <span class="text-red-600">STREAM</span><span class="text-white">PULSE</span>
+            </a>
+
+            <!-- Navigation Links for Categories -->
+            <div class="hidden lg:flex items-center space-x-6 ml-8">
+                <a href="{% url 'home' %}" class="text-white hover:text-red-500 font-bold text-sm transition">Movies</a>
+                <a href="#web-series-db" class="text-white/70 hover:text-white font-bold text-sm transition">Web Series</a>
+                <a href="#anime-universe" class="text-white/70 hover:text-white font-bold text-sm transition">Anime</a>
+                <a href="#kids-cartoons" class="text-white/70 hover:text-white font-bold text-sm transition">Kids</a>
+            </div>
+
+            <!-- Modern Netflix-style Search Form -->
+            <form action="{% url 'search' %}" method="GET" class="d-flex ms-auto items-center">
+                <div class="relative group">
+                    <input type="text" name="q" placeholder="Search..." 
+                        class="bg-black border border-white/30 text-white text-sm px-4 py-1.5 focus:outline-none focus:border-white transition-all w-40 sm:w-64">
+                    <button type="submit" class="absolute right-2 top-1.5 text-white/70 group-hover:text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </button>
+                </div>
+            </form>
+            
+            <button class="navbar-toggler border-0 focus:outline-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 space-x-0 lg:space-x-4">
+                    <li class="nav-item">
+                        <a class="nav-link hover:text-red-500 transition" href="#">Live</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link hover:text-red-500 transition" href="#">Upcoming</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link hover:text-red-500 transition" href="#">Highlights</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link hover:text-red-500 transition" href="{% url 'auto_sync_movies' %}">Sync Movies</a>
+                    </li>
+                </ul>
+                
+                <div class="d-flex align-items-center">
+                    {% if user.is_authenticated %}
+                        <div class="dropdown">
+                            <button class="btn border-0 d-flex align-items-center space-x-2 text-white dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="{{ active_profile.avatar|default:'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix' }}" alt="Profile" class="w-8 h-8 rounded-full border border-slate-700 me-2">
+                                <span class="d-none d-sm-inline text-sm font-medium">{{ active_profile.name|default:user.username }}</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark-custom shadow-xl py-2 mt-2">
+                                <li><a class="dropdown-item px-4 py-2 text-sm transition" href="{% url 'my_watchlist' %}">My Watchlist</a></li>
+                                <li><a class="dropdown-item px-4 py-2 text-sm transition" href="{% url 'select_profile' %}">Switch Profile</a></li>
+                                <li><hr class="dropdown-divider border-slate-800"></li>
+                                <li><a class="dropdown-item px-4 py-2 text-sm text-red-500 transition" href="{% url 'logout' %}">Logout</a></li>
+                            </ul>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-danger font-semibold px-4 py-2">Login</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section: Hotstar-style Slider -->
+    {% if featured_items %}
+    <section id="hotstarSlider" class="carousel slide carousel-fade mb-8" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            {% for item in featured_items %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}" data-bs-interval="5000">
+                <a href="{% if item.category == 'LIVE_SPORTS' %}{% url 'watch_match' item.id %}{% else %}{% url 'watch_movie' 'movie' item.id %}{% endif %}" class="block relative h-[40vh] md:h-[70vh] overflow-hidden rounded-2xl md:rounded-none mx-4 md:mx-0 mt-4 md:mt-0 shadow-2xl">
+                    <img src="{% if item.poster_url %}{{ item.poster_url }}{% else %}https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=1920{% endif %}" 
+                         class="w-full h-full object-cover" alt="{{ item.title }}">
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
+                    
+                    <div class="absolute bottom-10 left-10 md:left-20 z-10 max-w-2xl">
+                        <div class="inline-block bg-red-600 text-white text-[10px] font-bold px-3 py-1 rounded-full mb-4 animate-pulse uppercase">Featured</div>
+                        <h1 class="text-3xl md:text-6xl font-black mb-4 text-white drop-shadow-lg">{{ item.title }}</h1>
+                        <p class="text-sm md:text-lg text-slate-300 mb-6 line-clamp-2 md:line-clamp-none">{{ item.description }}</p>
+                        <div class="flex items-center space-x-4">
+                            <span class="bg-white text-black px-6 md:px-8 py-2 md:py-3 rounded-md font-bold text-sm md:text-lg hover:bg-slate-200 transition">Watch Now</span>
+                        </div>
+                    </div>
+
+                    <!-- Developer Branding Badge -->
+                    <div class="absolute top-10 left-10 z-20 hidden md:block">
+                        <div class="bg-black/60 backdrop-blur-md border border-white/20 px-4 py-2 rounded-xl">
+                            <p class="text-[10px] uppercase tracking-[0.2em] text-red-500 font-bold mb-0.5">Premium Experience</p>
+                            <p class="text-white text-sm font-black italic">StreamPulse OTT</p>
+                            <p class="text-white/70 text-[9px] mt-1">By Ankit Maurya</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#hotstarSlider" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#hotstarSlider" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        </button>
+    </section>
+    {% else %}
+    <section class="relative h-[40vh] md:h-[60vh] flex items-center justify-center hero-gradient mb-8">
+        <div class="max-w-7xl mx-auto px-4 text-center z-10">
+            <h1 class="text-4xl md:text-6xl font-black mb-4">StreamPulse Premium</h1>
+            <p class="text-lg text-slate-300">Discover your next favorite movie or match.</p>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Category Sub-Navbar -->
+    <div class="sticky top-[72px] z-40 bg-slate-950/80 backdrop-blur-lg border-b border-slate-800 py-3 mb-8 overflow-x-auto hide-scrollbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center space-x-8 text-sm font-bold uppercase tracking-widest whitespace-nowrap">
+                <a href="#trending" class="text-red-500 hover:text-red-400 transition">Trending</a>
+                <a href="#bollywood" class="text-slate-400 hover:text-white transition">Bollywood</a>
+                <a href="#south" class="text-slate-400 hover:text-white transition">South Indian</a>
+                <a href="#hollywood" class="text-slate-400 hover:text-white transition">Hollywood</a>
+                <a href="#web-series" class="text-slate-400 hover:text-white transition">Web Series</a>
+                <a href="#live-sports" class="text-slate-400 hover:text-white transition">Live Sports</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <!-- Optimized Grid for Mobile (2 cards per row) -->
+        <style>
+            @media (max-width: 640px) {
+                .mobile-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                    gap: 0.75rem;
+                }
+                .mobile-grid > div {
+                    width: 100% !important;
+                    margin-right: 0 !important;
+                }
+            }
+        </style>
+        <!-- Conditional rendering for search results -->
+        {% if search_results %}
+            <h2 class="text-2xl font-bold mb-8 flex items-center">
+                <span class="w-1 h-8 bg-red-600 mr-4"></span>
+                Search Results for "{{ search_query }}"
+            </h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-16">
+                {% for match in search_results %}
+                    {% include "matches/includes/item_card.html" with item=match %}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if not search_query or search_results %}
+            <!-- Latest Movies Row -->
+            <div id="latest-movies" class="mb-16">
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <span class="w-1.5 h-8 bg-blue-600 mr-4 rounded-full"></span>
+                    Latest Movies 🎬
+                </h2>
+                <div class="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory mobile-grid">
+                    {% for movie in latest_movies %}
+                        <div class="flex-none w-[200px] sm:w-[250px] snap-start">
+                            {% include "matches/includes/item_card.html" with item=movie %}
+                        </div>
+                    {% empty %}
+                        <p class="text-slate-500 italic">No movies added yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Web Series Row (Database) -->
+            <div id="web-series-db" class="mb-16">
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <span class="w-1.5 h-8 bg-purple-600 mr-4 rounded-full"></span>
+                    Trending Web Series 📺
+                </h2>
+                <div class="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory mobile-grid">
+                    {% for show in web_series_list %}
+                        <div class="flex-none w-[200px] sm:w-[250px] snap-start">
+                            {% include "matches/includes/item_card.html" with item=show %}
+                        </div>
+                    {% empty %}
+                        <p class="text-slate-500 italic">New series arriving soon!</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Anime Universe Row -->
+            <div id="anime-universe" class="mb-16">
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <span class="w-1.5 h-8 bg-yellow-500 mr-4 rounded-full"></span>
+                    Anime Universe 🔥
+                </h2>
+                <div class="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory mobile-grid">
+                    {% for anime in anime_universe %}
+                        <div class="flex-none w-[200px] sm:w-[250px] snap-start">
+                            {% include "matches/includes/item_card.html" with item=anime %}
+                        </div>
+                    {% empty %}
+                        <p class="text-slate-500 italic">Exploring the multiverse...</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Kids & Cartoons Row -->
+            <div id="kids-cartoons" class="mb-16">
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <span class="w-1.5 h-8 bg-green-500 mr-4 rounded-full"></span>
+                    Kids Corner 👶
+                </h2>
+                <div class="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory mobile-grid">
+                    {% for kid in kids_cartoons %}
+                        <div class="flex-none w-[200px] sm:w-[250px] snap-start">
+                            {% include "matches/includes/item_card.html" with item=kid %}
+                        </div>
+                    {% empty %}
+                        <p class="text-slate-500 italic">Magic is coming soon!</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- My Watchlist Row -->
+            {% if watchlist_items %}
+            <div class="mb-16">
+                <h2 class="text-2xl font-bold mb-6 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="w-1.5 h-8 bg-red-600 mr-4 rounded-full"></span>
+                        My Watchlist
+                    </div>
+                    <a href="{% url 'my_watchlist' %}" class="text-sm font-bold text-red-500 hover:text-red-400 uppercase tracking-tighter">View All</a>
+                </h2>
+                <div class="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory mobile-grid">
+                    {% for item in watchlist_items %}
+                        <div class="flex-none w-[200px] sm:w-[250px] snap-start">
+                            {% include "matches/includes/item_card.html" with item=item %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Trending Movies Row -->
+            <div id="trending" class="mb-16">
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <span class="w-1.5 h-8 bg-red-600 mr-4 rounded-full"></span>
+                    Trending Blockbusters
+                </h2>
+                <div class="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory mobile-grid">
+                    {% for movie in trending_movies %}
+                        <div class="flex-none w-[200px] sm:w-[250px] snap-start">
+                            {% include "matches/includes/item_card.html" with item=movie %}
+                        </div>
+                    {% empty %}
+                        <p class="text-slate-500 italic">Curating top picks for you...</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Bollywood Hits Row -->
+            <div id="bollywood" class="mb-16">
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <span class="w-1.5 h-8 bg-red-600 mr-4 rounded-full"></span>
+                    Bollywood Hits
+                </h2>
+                <div class="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory mobile-grid">
+                    {% for movie in bollywood_hits %}
+                        <div class="flex-none w-[200px] sm:w-[250px] snap-start">
+                            {% include "matches/includes/item_card.html" with item=movie %}
+                        </div>
+                    {% empty %}
+                        <p class="text-slate-500 italic">No Bollywood hits available.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- South Indian Row -->
+            <div id="south" class="mb-16">
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <span class="w-1.5 h-8 bg-red-600 mr-4 rounded-full"></span>
+                    South Indian Hindi Dubbed
+                </h2>
+                <div class="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory mobile-grid">
+                    {% for movie in south_hindi %}
+                        <div class="flex-none w-[200px] sm:w-[250px] snap-start">
+                            {% include "matches/includes/item_card.html" with item=movie %}
+                        </div>
+                    {% empty %}
+                        <p class="text-slate-500 italic">No South Indian movies available.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Hollywood Releases Row -->
+            <div id="hollywood" class="mb-16">
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <span class="w-1.5 h-8 bg-red-600 mr-4 rounded-full"></span>
+                    Hollywood Releases
+                </h2>
+                <div class="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory mobile-grid">
+                    {% for movie in hollywood_releases %}
+                        <div class="flex-none w-[200px] sm:w-[250px] snap-start">
+                            {% include "matches/includes/item_card.html" with item=movie %}
+                        </div>
+                    {% empty %}
+                        <p class="text-slate-500 italic">No Hollywood releases available.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Web Series Row -->
+            <div id="web-series" class="mb-16">
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <span class="w-1.5 h-8 bg-red-600 mr-4 rounded-full"></span>
+                    Top Web Series & TV Shows
+                </h2>
+                <div class="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory mobile-grid">
+                    {% for show in web_series %}
+                        <div class="flex-none w-[200px] sm:w-[250px] snap-start">
+                            {% include "matches/includes/item_card.html" with item=show %}
+                        </div>
+                    {% empty %}
+                        <p class="text-slate-500 italic">No web series available.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Live Sports Row (Isolated) -->
+            <div id="live-sports" class="mb-16">
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <span class="w-1.5 h-8 bg-red-600 mr-4 rounded-full"></span>
+                    Live Sports & Matches
+                </h2>
+                <div class="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory mobile-grid">
+                    {% for match in live_sports %}
+                        <div class="flex-none w-[200px] sm:w-[250px] snap-start">
+                            {% include "matches/includes/item_card.html" with item=match %}
+                        </div>
+                    {% empty %}
+                        <p class="text-slate-500 italic">No live sports at the moment.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </main>
+
+    <footer class="border-t border-slate-800 py-8 mt-12 bg-slate-950">
+        <div class="max-w-7xl mx-auto px-4 text-center text-slate-500 text-sm">
+            <p>&copy; 2026 StreamPulse. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

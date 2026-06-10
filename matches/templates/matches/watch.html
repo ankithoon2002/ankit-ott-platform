@@ -1,0 +1,576 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watching: {{ match.title }} - StreamPulse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Video.js for .m3u8 support -->
+    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        body {
+            background-color: #020617; /* Slate-950 equivalent */
+            color: #f8fafc;
+        }
+        .video-container {
+            aspect-ratio: 16 / 9;
+            background: #000;
+            position: relative;
+        }
+        .video-controls {
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 10;
+        }
+        .video-container:hover .video-controls {
+            opacity: 1;
+        }
+        .control-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s;
+        }
+        .control-btn:hover {
+            transform: scale(1.1);
+            color: #3b82f6;
+        }
+        .control-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+        .progress-container {
+            flex: 1;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+        .progress-bar {
+            height: 100%;
+            background: #3b82f6;
+            border-radius: 2px;
+            width: 0%;
+        }
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100px;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: rgba(255,255,255,0.2);
+            height: 4px;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #3b82f6;
+            border-radius: 50%;
+        }
+        .active-channel {
+            border: 2px solid #3b82f6 !important; /* border-blue-500 */
+            background-color: rgba(30, 41, 59, 0.5) !important;
+        }
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .animate-pulse-red {
+            animation: pulse-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased bg-slate-950">
+
+<nav class="sticky top-0 z-50 py-3 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
+    <div class="container mx-auto px-4 flex justify-between items-center">
+        <a class="font-black text-2xl tracking-tighter" href="{% url 'home' %}">
+            <span class="text-blue-500">STREAM</span><span class="text-white">PULSE</span>
+        </a>
+        <div class="flex items-center space-x-4">
+            {% if user.is_authenticated %}
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.username }}" alt="Profile" class="w-8 h-8 rounded-full border border-slate-700">
+            {% else %}
+                <a href="{% url 'login' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-md text-sm font-bold transition">Login</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<main class="container mx-auto px-0 lg:px-4 py-0 lg:py-6">
+    <div class="flex flex-col lg:flex-row gap-6">
+        
+        <!-- LEFT COLUMN: PLAYER & INFO -->
+        <div class="w-full lg:w-[75%] space-y-6">
+            <div class="video-container shadow-2xl lg:rounded-2xl overflow-hidden bg-black border border-slate-800 group/player">
+                {% if match.stream_type == 'm3u8' %}
+                    <video id="streampulse-player" class="w-full h-full object-contain" preload="auto">
+                        <source src="{{ match.live_link }}" type="application/x-mpegURL">
+                    </video>
+                    
+                    <!-- Custom Controls Overlay -->
+                    <div class="video-controls group-hover/player:opacity-100">
+                        <button class="control-btn" id="playPauseBtn" title="Play/Pause">
+                            <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            <svg id="pauseIcon" class="hidden" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                        </button>
+
+                        <button class="control-btn" id="skipBackBtn" title="Back 10s">
+                            <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05 1-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
+                            <span class="text-[8px] absolute mt-1">10</span>
+                        </button>
+
+                        <button class="control-btn" id="skipForwardBtn" title="Forward 10s">
+                            <svg viewBox="0 0 24 24"><path d="M11.5 8c2.65 0 5.05 1 6.9 2.6L22 7v9h-9l3.62-3.62c-1.39-1.16-3.16-1.88-5.12-1.88-3.54 0-6.55 2.31-7.6 5.5l-2.37-.78C2.92 11.03 6.85 8 11.5 8z"/></svg>
+                            <span class="text-[8px] absolute mt-1">10</span>
+                        </button>
+
+                        <div class="text-xs font-mono text-white min-w-[100px]" id="timeDisplay">0:00 / 0:00</div>
+
+                        <div class="progress-container" id="progressContainer">
+                            <div class="progress-bar" id="progressBar"></div>
+                        </div>
+
+                        <div class="volume-container">
+                            <button class="control-btn" id="muteBtn" title="Mute/Unmute">
+                                <svg id="volumeIcon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                                <svg id="muteIcon" class="hidden" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+                            </button>
+                            <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="1">
+                        </div>
+                        
+                        <button class="control-btn" id="fullscreenBtn" title="Fullscreen">
+                            <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+                        </button>
+                    </div>
+                {% else %}
+                    <iframe id="mainPlayerFrame" class="w-full h-full" src="{{ match.live_link }}" frameborder="0" allowfullscreen></iframe>
+                {% endif %}
+            </div>
+
+            <!-- Scorecard & Match Info Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 px-4 lg:px-0">
+                <!-- Scorecard Panel -->
+                <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 flex flex-col justify-center relative overflow-hidden">
+                    {% if match.team_a_score == "0/0" and match.team_b_score == "Yet to Bat" and match.category != 'LIVE_SPORTS' %}
+                        <div class="text-center">
+                            <p class="text-sm font-bold text-slate-400">Live TV Channel Mode</p>
+                            <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Check active match cards for real-time scores!</p>
+                        </div>
+                    {% else %}
+                        <div class="absolute top-0 right-0 p-3">
+                             <span class="flex items-center text-[10px] font-black bg-red-600 text-white px-2 py-0.5 rounded-full animate-pulse-red">LIVE</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="text-center flex-1">
+                                <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mb-2">Team A</p>
+                                <h2 class="text-3xl font-black text-white" id="teamAScore">{{ match.team_a_score }}</h2>
+                            </div>
+                            <div class="px-4">
+                                <span class="bg-slate-800 text-slate-400 text-[10px] font-black px-3 py-1 rounded-full border border-slate-700">VS</span>
+                            </div>
+                            <div class="text-center flex-1">
+                                <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mb-2">Team B</p>
+                                <h2 class="text-3xl font-black text-white" id="teamBScore">{{ match.team_b_score }}</h2>
+                            </div>
+                        </div>
+                        <div class="mt-4 text-center">
+                            <p class="text-sm font-bold text-blue-400" id="matchStatus">{{ match.match_status_text }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Match Info Panel -->
+                <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
+                    <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Match Information</h3>
+                    <table class="w-full text-sm">
+                        <tr class="border-b border-slate-800/50">
+                            <td class="py-2 text-slate-400 font-medium">Tournament</td>
+                            <td class="py-2 text-right font-bold text-slate-200">{{ match.tournament }}</td>
+                        </tr>
+                        <tr class="border-b border-slate-800/50">
+                            <td class="py-2 text-slate-400 font-medium">Venue</td>
+                            <td class="py-2 text-right font-bold text-slate-200">{{ match.venue }}</td>
+                        </tr>
+                        <tr class="border-b border-slate-800/50">
+                            <td class="py-2 text-slate-400 font-medium">Status</td>
+                            <td class="py-2 text-right font-bold text-green-500">Live Coverage</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 text-slate-400 font-medium">Toss</td>
+                            <td class="py-2 text-right font-bold text-slate-200">Decided at Stadium</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Title and Description -->
+            <div class="px-4 lg:px-0">
+                <div class="flex flex-col md:flex-row justify-between items-start mb-2">
+                    <div class="flex-1">
+                        <h1 class="text-2xl lg:text-3xl font-black text-white mb-2" id="activeChannelTitle">{{ match.title }} - {{ match.server_1_badge }}</h1>
+                    </div>
+                    {% if match.category == 'movie' or match.category == 'anime' or match.category == 'kids' %}
+                    <div class="w-full md:w-auto mt-4 md:mt-0">
+                        {% if match.download_url %}
+                        <a href="{{ match.download_url }}" download class="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-xl font-bold text-xs text-center flex items-center justify-center transition shadow-lg shadow-green-900/20">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            📥 Download to Mobile (VLC/MX Player)
+                        </a>
+                        {% else %}
+                        <a href="#" onclick="alert('Download link will be available soon!'); return false;" class="w-full md:w-auto bg-green-600/50 hover:bg-green-700/50 text-white/70 px-6 py-2.5 rounded-xl font-bold text-xs text-center flex items-center justify-center transition cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            📥 Download to Mobile (VLC/MX Player)
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                <p class="text-slate-400 text-sm leading-relaxed max-w-4xl">
+                    {{ match.description|default:"Catch the live action, pulse-pounding moments, and every boundary here on StreamPulse. Switch between multiple servers for the best viewing experience." }}
+                </p>
+            </div>
+
+            <!-- You May Also Like Section -->
+            <div class="px-4 lg:px-0 pt-8">
+                <h3 class="text-xl font-black text-white mb-6 uppercase tracking-tighter flex items-center">
+                    <span class="w-1.5 h-6 bg-blue-600 mr-3 rounded-full"></span>
+                    You May Also Like
+                </h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
+                    {% for suggestion in suggested_matches %}
+                    <a href="{% url 'watch_match' suggestion.id %}" class="group block bg-slate-900/40 border border-slate-800 rounded-2xl overflow-hidden hover:border-blue-500/50 transition-all duration-300 transform hover:-translate-y-1">
+                        <div class="aspect-[2/3] relative overflow-hidden">
+                            {% if suggestion.poster_url %}
+                            <img src="{{ suggestion.poster_url }}" alt="{{ suggestion.title }}" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                            {% else %}
+                            <div class="w-full h-full bg-slate-800 flex items-center justify-center">
+                                <svg class="w-12 h-12 text-slate-700" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"/></svg>
+                            </div>
+                            {% endif %}
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent opacity-60"></div>
+                            <div class="absolute bottom-2 left-2 right-2">
+                                <span class="px-2 py-0.5 bg-blue-600/80 backdrop-blur-sm text-[8px] font-black text-white rounded uppercase">{{ suggestion.get_category_display }}</span>
+                            </div>
+                        </div>
+                        <div class="p-3">
+                            <h4 class="text-xs font-bold text-white truncate group-hover:text-blue-400 transition">{{ suggestion.title }}</h4>
+                            <p class="text-[10px] text-slate-500 mt-1">Watch Now</p>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <p class="text-slate-500 text-sm">No recommendations available.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Watch More Row (Legacy, optional cleanup) -->
+            <div class="px-4 lg:px-0 pt-4">
+                <h3 class="text-lg font-black text-white mb-4 uppercase tracking-tighter">Watch More</h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+                    <div class="group cursor-pointer">
+                        <div class="aspect-video bg-slate-800 rounded-xl mb-2 overflow-hidden border border-slate-700 group-hover:border-blue-500 transition">
+                            <img src="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=400&auto=format&fit=crop" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition" alt="Highlights">
+                        </div>
+                        <p class="text-xs font-bold text-slate-300 group-hover:text-white transition">Match Highlights</p>
+                    </div>
+                    <div class="group cursor-pointer">
+                        <div class="aspect-video bg-slate-800 rounded-xl mb-2 overflow-hidden border border-slate-700 group-hover:border-blue-500 transition">
+                            <img src="https://images.unsplash.com/photo-1533107862482-0e6974b06ec4?q=80&w=400&auto=format&fit=crop" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition" alt="Press Conference">
+                        </div>
+                        <p class="text-xs font-bold text-slate-300 group-hover:text-white transition">Press Conferences</p>
+                    </div>
+                    <div class="group cursor-pointer hidden md:block">
+                        <div class="aspect-video bg-slate-800 rounded-xl mb-2 overflow-hidden border border-slate-700 group-hover:border-blue-500 transition">
+                            <img src="https://images.unsplash.com/photo-1518063319789-7217e6706b04?q=80&w=400&auto=format&fit=crop" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition" alt="Analysis">
+                        </div>
+                        <p class="text-xs font-bold text-slate-300 group-hover:text-white transition">Pre-Match Analysis</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: CHANNELS SIDEBAR -->
+        <div class="w-full lg:w-[25%]">
+            <div class="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden flex flex-col h-full lg:max-h-[85vh]">
+                <div class="p-4 border-b border-slate-800 bg-slate-900">
+                    <h2 class="font-black text-sm uppercase tracking-widest text-slate-200 flex items-center">
+                        <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                        Live Channels
+                    </h2>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto sidebar-scroll p-3 space-y-3">
+                    <!-- Channel 1 -->
+                    {% if match.live_link %}
+                    <button onclick="changeActiveChannel('{{ match.live_link }}', '{{ match.server_1_badge }}', this, '{{ match.stream_type }}')" class="w-full flex items-center p-3 rounded-xl border border-slate-800 bg-slate-950/50 hover:bg-slate-800 transition group active-channel">
+                        <div class="w-10 h-10 rounded-lg bg-red-600 flex items-center justify-center font-black text-xs text-white shrink-0 mr-3">1</div>
+                        <div class="text-left flex-1">
+                            <span class="block text-[10px] font-black text-red-500 uppercase">{{ match.server_1_badge }}</span>
+                            <span class="block text-xs font-bold text-slate-300 group-hover:text-white">{{ match.server_1_name }}</span>
+                        </div>
+                    </button>
+                    {% endif %}
+
+                    <!-- Channel 2 -->
+                    {% if match.server_2_link %}
+                    <button onclick="changeActiveChannel('{{ match.server_2_link }}', '{{ match.server_2_badge }}', this, '{{ match.stream_type }}')" class="w-full flex items-center p-3 rounded-xl border border-slate-800 bg-slate-950/50 hover:bg-slate-800 transition group">
+                        <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center font-black text-xs text-white shrink-0 mr-3">2</div>
+                        <div class="text-left flex-1">
+                            <span class="block text-[10px] font-black text-blue-500 uppercase">{{ match.server_2_badge }}</span>
+                            <span class="block text-xs font-bold text-slate-300 group-hover:text-white">{{ match.server_2_name }}</span>
+                        </div>
+                    </button>
+                    {% endif %}
+
+                    <!-- Channel 3 -->
+                    {% if match.server_3_link %}
+                    <button onclick="changeActiveChannel('{{ match.server_3_link }}', '{{ match.server_3_badge }}', this, '{{ match.stream_type }}')" class="w-full flex items-center p-3 rounded-xl border border-slate-800 bg-slate-950/50 hover:bg-slate-800 transition group">
+                        <div class="w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center font-black text-xs text-white shrink-0 mr-3">3</div>
+                        <div class="text-left flex-1">
+                            <span class="block text-[10px] font-black text-slate-400 uppercase">{{ match.server_3_badge }}</span>
+                            <span class="block text-xs font-bold text-slate-300 group-hover:text-white">{{ match.server_3_name }}</span>
+                        </div>
+                    </button>
+                    {% endif %}
+
+                    <!-- Channel 4 -->
+                    {% if match.server_4_link %}
+                    <button onclick="changeActiveChannel('{{ match.server_4_link }}', '{{ match.server_4_badge }}', this, '{{ match.stream_type }}')" class="w-full flex items-center p-3 rounded-xl border border-slate-800 bg-slate-950/50 hover:bg-slate-800 transition group">
+                        <div class="w-10 h-10 rounded-lg bg-green-600 flex items-center justify-center font-black text-xs text-white shrink-0 mr-3">4</div>
+                        <div class="text-left flex-1">
+                            <span class="block text-[10px] font-black text-green-500 uppercase">{{ match.server_4_badge }}</span>
+                            <span class="block text-xs font-bold text-slate-300 group-hover:text-white">{{ match.server_4_name }}</span>
+                        </div>
+                    </button>
+                    {% endif %}
+
+                    <!-- Channel 5 -->
+                    {% if match.server_5_link %}
+                    <button onclick="changeActiveChannel('{{ match.server_5_link }}', '{{ match.server_5_badge }}', this, '{{ match.stream_type }}')" class="w-full flex items-center p-3 rounded-xl border border-slate-800 bg-slate-950/50 hover:bg-slate-800 transition group">
+                        <div class="w-10 h-10 rounded-lg bg-green-700 flex items-center justify-center font-black text-xs text-white shrink-0 mr-3">5</div>
+                        <div class="text-left flex-1">
+                            <span class="block text-[10px] font-black text-green-600 uppercase">{{ match.server_5_badge }}</span>
+                            <span class="block text-xs font-bold text-slate-300 group-hover:text-white">{{ match.server_5_name }}</span>
+                        </div>
+                    </button>
+                    {% endif %}
+
+                    <!-- Channel 6 -->
+                    {% if match.server_6_link %}
+                    <button onclick="changeActiveChannel('{{ match.server_6_link }}', '{{ match.server_6_badge }}', this, '{{ match.stream_type }}')" class="w-full flex items-center p-3 rounded-xl border border-slate-800 bg-slate-950/50 hover:bg-slate-800 transition group">
+                        <div class="w-10 h-10 rounded-lg bg-orange-600 flex items-center justify-center font-black text-xs text-white shrink-0 mr-3">6</div>
+                        <div class="text-left flex-1">
+                            <span class="block text-[10px] font-black text-orange-500 uppercase">{{ match.server_6_badge }}</span>
+                            <span class="block text-xs font-bold text-slate-300 group-hover:text-white">{{ match.server_6_name }}</span>
+                        </div>
+                    </button>
+                    {% endif %}
+                </div>
+
+                <div class="p-4 bg-slate-900 border-t border-slate-800">
+                    <p class="text-[10px] text-slate-500 text-center font-bold uppercase tracking-tighter">Powered by StreamPulse Architecture</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    /**
+     * Professional Custom Video Player Controller
+     */
+    document.addEventListener('DOMContentLoaded', () => {
+        const video = document.getElementById('streampulse-player');
+        if (!video) return;
+
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+        const skipBackBtn = document.getElementById('skipBackBtn');
+        const skipForwardBtn = document.getElementById('skipForwardBtn');
+        const muteBtn = document.getElementById('muteBtn');
+        const volumeIcon = document.getElementById('volumeIcon');
+        const muteIcon = document.getElementById('muteIcon');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const progressBar = document.getElementById('progressBar');
+        const progressContainer = document.getElementById('progressContainer');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const container = video.parentElement;
+
+        function formatTime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = Math.floor(seconds % 60);
+            if (h > 0) {
+                return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }
+            return `${m}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function togglePlay() {
+            if (video.paused) {
+                video.play();
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+            } else {
+                video.pause();
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+            }
+        }
+
+        playPauseBtn.addEventListener('click', togglePlay);
+        video.addEventListener('click', togglePlay);
+
+        skipBackBtn.addEventListener('click', () => video.currentTime -= 10);
+        skipForwardBtn.addEventListener('click', () => video.currentTime += 10);
+
+        muteBtn.addEventListener('click', () => {
+            video.muted = !video.muted;
+            if (video.muted) {
+                volumeIcon.classList.add('hidden');
+                muteIcon.classList.remove('hidden');
+                volumeSlider.value = 0;
+            } else {
+                volumeIcon.classList.remove('hidden');
+                muteIcon.classList.add('hidden');
+                volumeSlider.value = video.volume;
+            }
+        });
+
+        volumeSlider.addEventListener('input', (e) => {
+            video.volume = e.target.value;
+            video.muted = video.volume === 0;
+            if (video.muted) {
+                volumeIcon.classList.add('hidden');
+                muteIcon.classList.remove('hidden');
+            } else {
+                volumeIcon.classList.remove('hidden');
+                muteIcon.classList.add('hidden');
+            }
+        });
+
+        video.addEventListener('timeupdate', () => {
+            const percent = (video.currentTime / video.duration) * 100;
+            progressBar.style.width = `${percent}%`;
+            timeDisplay.innerText = `${formatTime(video.currentTime)} / ${formatTime(video.duration || 0)}`;
+        });
+
+        progressContainer.addEventListener('click', (e) => {
+            const pos = (e.pageX - progressContainer.getBoundingClientRect().left) / progressContainer.offsetWidth;
+            video.currentTime = pos * video.duration;
+        });
+
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                container.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        // Initialize hls for non-m3u8 native browsers if needed
+        const videoSource = video.querySelector('source') ? video.querySelector('source').src : '';
+        if (typeof Hls !== 'undefined' && Hls.isSupported() && videoSource.endsWith('.m3u8')) {
+            const hls = new Hls();
+            hls.loadSource(videoSource);
+            hls.attachMedia(video);
+        }
+    });
+
+    /**
+     * Optimized Channel Switch Engine
+     * Swaps iframe source or Video.js source and updates active UI highlights instantly
+     */
+    function changeActiveChannel(url, badgeName, element, streamType) {
+        // 1. Update Player Source
+        if (streamType === 'm3u8') {
+            const player = videojs('streampulse-player');
+            if (player) {
+                // Inject custom headers before the request
+                videojs.Vhs.xhr.beforeRequest = function(options) {
+                    options.headers = options.headers || {};
+                    options.headers['X-Requested-With'] = 'XMLHttpRequest';
+                    return options;
+                };
+
+                player.src({
+                    src: url,
+                    type: 'application/x-mpegURL'
+                });
+                player.play();
+            }
+        } else {
+            const playerFrame = document.getElementById('mainPlayerFrame');
+            if (playerFrame && playerFrame.src !== url) {
+                playerFrame.src = url;
+            }
+        }
+
+        // 2. Update Title on Screen
+        const titleElement = document.getElementById('activeChannelTitle');
+        const baseTitle = "{{ match.title|escapejs }}";
+        titleElement.innerText = `${baseTitle} - ${badgeName}`;
+
+        // 3. Update Active Highlight UI
+        const allButtons = document.querySelectorAll('.sidebar-scroll button');
+        allButtons.forEach(btn => {
+            btn.classList.remove('active-channel');
+        });
+        element.classList.add('active-channel');
+
+        // Scroll player into view for mobile users
+        if (window.innerWidth < 1024) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    // Auto-refresh scorecard data (optional implementation)
+    function refreshScores() {
+        // For static model data, this just keeps the UI fresh
+        // In a real scenario, you'd fetch from an API endpoint
+        console.log("StreamPulse: Scorecard synced.");
+    }
+    
+    // Initial call
+    setInterval(refreshScores, 60000);
+</script>
+
+</body>
+</html>
