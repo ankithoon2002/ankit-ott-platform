@@ -212,9 +212,11 @@
                 </h2>
                 <div class="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory mobile-grid">
                     {% for movie in latest_movies %}
+                        {% if movie.category == 'movie' %}
                         <div class="flex-none w-[200px] sm:w-[250px] snap-start">
                             {% include "matches/includes/item_card.html" with item=movie %}
                         </div>
+                        {% endif %}
                     {% empty %}
                         <p class="text-slate-500 italic">No movies added yet.</p>
                     {% endfor %}
@@ -246,9 +248,11 @@
                 </h2>
                 <div class="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory mobile-grid">
                     {% for anime in anime_universe %}
+                        {% if anime.category == 'anime' %}
                         <div class="flex-none w-[200px] sm:w-[250px] snap-start">
                             {% include "matches/includes/item_card.html" with item=anime %}
                         </div>
+                        {% endif %}
                     {% empty %}
                         <p class="text-slate-500 italic">Exploring the multiverse...</p>
                     {% endfor %}
@@ -263,9 +267,11 @@
                 </h2>
                 <div class="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory mobile-grid">
                     {% for kid in kids_cartoons %}
+                        {% if kid.category == 'kids' %}
                         <div class="flex-none w-[200px] sm:w-[250px] snap-start">
                             {% include "matches/includes/item_card.html" with item=kid %}
                         </div>
+                        {% endif %}
                     {% empty %}
                         <p class="text-slate-500 italic">Magic is coming soon!</p>
                     {% endfor %}
