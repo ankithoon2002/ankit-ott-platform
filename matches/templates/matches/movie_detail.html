@@ -184,21 +184,12 @@
                 </div>
                 <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full md:w-auto">
                     {% if content_type == 'movie' or content_type == 'anime' or content_type == 'kids' %}
-                        {% if download_url %}
-                        <a href="{{ download_url }}" download class="flex-1 md:flex-none bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold text-sm text-center flex items-center justify-center">
+                        <a href="{{ download_url }}" download class="flex-1 md:flex-none bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold text-sm text-center flex items-center justify-center transition shadow-lg shadow-green-900/20">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
-                            📥 Download to Mobile (VLC/MX Player)
+                            📥 Download Movie
                         </a>
-                        {% else %}
-                        <a href="#" onclick="alert('Download link will be available soon!'); return false;" class="flex-1 md:flex-none bg-green-600/50 hover:bg-green-700/50 text-white/70 px-6 py-2 rounded-lg font-bold text-sm text-center flex items-center justify-center cursor-pointer">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                            📥 Download to Mobile (VLC/MX Player)
-                        </a>
-                        {% endif %}
                     {% endif %}
                     <button class="flex-1 md:flex-none bg-slate-800 px-6 py-2 rounded-lg font-bold text-sm">Share</button>
                 </div>

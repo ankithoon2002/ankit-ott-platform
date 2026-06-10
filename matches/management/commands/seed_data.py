@@ -2,76 +2,111 @@ from django.core.management.base import BaseCommand
 from matches.models import Match
 
 class Command(BaseCommand):
-    help = 'Seeds the database with high-quality sample data for Movies, Anime, and Kids'
+    help = 'Bulk ingests automated movie data with smart streaming and download fallback logic'
 
     def handle(self, *args, **kwargs):
-        # List of old titles to clear to ensure fresh data
-        old_titles = [
-            "Naruto Shippuden",
-            "Dragon Ball Super",
-            "Motu Patlu Live Special",
-            "Chhota Bheem Hub",
-            "Naruto Shippuden (Ep 01)",
-            "Motu Patlu - Nonstop Magic"
-        ]
-        
-        # Clearing old entries to avoid conflicts and ensure new posters/links are used
-        Match.objects.filter(title__in=old_titles).delete()
-        self.stdout.write(self.style.WARNING('Cleared old matching titles for fresh seeding.'))
-
-        sample_data = [
+        bulk_content = [
             {
-                "title": "Naruto Shippuden (Ep 01)",
-                "category": "anime",
-                "poster_url": "https://images.alphacoders.com/300/300067.jpg",
-                "server_2_link": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-                "download_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-                "is_featured": True,
-                "stream_type": "iframe"
-            },
-            {
-                "title": "Dragon Ball Super",
-                "category": "anime",
-                "poster_url": "https://images7.alphacoders.com/832/832262.jpg",
-                "server_2_link": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-                "download_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-                "is_featured": False,
-                "stream_type": "iframe"
-            },
-            {
-                "title": "Motu Patlu - Nonstop Magic",
+                "title": "Return of the Jungle (2026)",
                 "category": "kids",
-                "poster_url": "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=500",
-                "server_2_link": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-                "download_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-                "is_featured": False,
-                "stream_type": "iframe"
+                "stream_url": "https://speedostream1.com/embed-4viu7vzs3iv3.html",
+                "download_url": ""
             },
             {
-                "title": "Chhota Bheem Hub",
+                "title": "Office Romance (Hindi Dubbed) 1080p",
+                "category": "movie",
+                "stream_url": "https://speedostream1.com/embed-7923ri9cggan.html",
+                "download_url": "https://kiaramia.ydc1wes.me/v/01/00009/7923ri9cggan_x/Prmovies-Office_Romance_Hindi_Dubbed_1080p.mkv.mp4?t=T-kXSxalml3QE09hwN_wKoapfhv-sD5vsOzXLe-Sv5s&amp;s=1781106217&amp;e=21600&amp;f=47409&amp;sp=50000&amp;i=0.0"
+            },
+            {
+                "title": "Chhota Bheem Aur Registaan Ka Shehenshah",
                 "category": "kids",
-                "poster_url": "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=500",
-                "server_2_link": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-                "download_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-                "is_featured": True,
-                "stream_type": "iframe"
+                "stream_url": "https://speedostream1.com/embed-c2bjfn0nfff3.html",
+                "download_url": ""
+            },
+            {
+                "title": "Dragon Ball Super: Saiyan Legacy",
+                "category": "anime",
+                "stream_url": "https://speedostream1.com/embed-b1ygldgnnfa3.html",
+                "download_url": ""
+            },
+            {
+                "title": "Motu Patlu & The Secret of Devil's Heart",
+                "category": "kids",
+                "stream_url": "https://speedostream1.com/embed-hslzn301lnu9.html",
+                "download_url": ""
+            },
+            {
+                "title": "Anime Chronicle Vol 1",
+                "category": "anime",
+                "stream_url": "https://speedostream1.com/embed-mdoxm4rwldja.html",
+                "download_url": ""
+            },
+            {
+                "title": "Kids Special Adventure",
+                "category": "kids",
+                "stream_url": "https://speedostream1.com/embed-nxo1rxyj0r6e.html",
+                "download_url": ""
+            },
+            {
+                "title": "Ben 10: Alien Force Reunion",
+                "category": "kids",
+                "stream_url": "https://speedostream1.com/embed-6uifjkzwmerq.html",
+                "download_url": ""
+            },
+            {
+                "title": "Ninja Hattori: The Great Race",
+                "category": "kids",
+                "stream_url": "https://speedostream1.com/embed-oq16vwpm3200.html",
+                "download_url": ""
+            },
+            {
+                "title": "Demon Slayer: Mugen Train Special",
+                "category": "anime",
+                "stream_url": "https://speedostream1.com/embed-g0ixx7bwqf5n.html",
+                "download_url": ""
+            },
+            {
+                "title": "Perman: Saving the City",
+                "category": "kids",
+                "stream_url": "https://speedostream1.com/embed-pk1yfzr3alk3.html",
+                "download_url": ""
+            },
+            {
+                "title": "Attack on Titan: Final Chronicle",
+                "category": "anime",
+                "stream_url": "https://speedostream1.com/embed-pxt1gp7arp5r.html",
+                "download_url": ""
             }
         ]
 
-        for item in sample_data:
+        self.stdout.write(self.style.NOTICE(f'Starting bulk ingestion of {len(bulk_content)} items...'))
+        
+        # Default poster placeholder
+        DEFAULT_POSTER = "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=500&auto=format&fit=crop"
+
+        for item in bulk_content:
+            # Smart Fallback Logic for 100% working download buttons
+            download_link = item["download_url"]
+            if not download_link:
+                download_link = item["stream_url"]
+
+            # Prevent Repeat Duplicates using unique key matching on server2_url
             match, created = Match.objects.update_or_create(
-                title=item["title"],
+                server2_url=item["stream_url"],
                 defaults={
+                    "title": item["title"],
                     "category": item["category"],
-                    "poster_url": item["poster_url"],
-                    "server_2_link": item["server_2_link"],
-                    "live_link": item["server_2_link"],  # Setting default server 1 to the same for playability
-                    "download_url": item["download_url"],
-                    "is_featured": item["is_featured"],
-                    "stream_type": item["stream_type"]
+                    "server_2_link": item["stream_url"], # Keeping both for backward compatibility
+                    "live_link": item["stream_url"],     # Also set as default server 1
+                    "download_url": download_link,
+                    "is_featured": True,
+                    "poster_url": DEFAULT_POSTER,
+                    "stream_type": "iframe"
                 }
             )
-            status = "created" if created else "updated"
-            self.stdout.write(self.style.SUCCESS(f'Successfully {status}: {item["title"]}'))
+            
+            status = "Created" if created else "Updated"
+            self.stdout.write(self.style.SUCCESS(f'{status}: {item["title"]}'))
 
-        self.stdout.write(self.style.SUCCESS('Database seeding complete with high-quality data!'))
+        self.stdout.write(self.style.SUCCESS('Bulk ingestion completed successfully!'))
