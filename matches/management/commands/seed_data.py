@@ -17,7 +17,7 @@ class Command(BaseCommand):
                 "slug": "spider-man-2-2004-hindi-dubbed-Watch-online-full-movie",
                 "category": "movie",
                 "platform": "Netflix",
-                "server2_url": "https://speedostream1.com/embed-gehcflnd4mzm.html",
+                "server2_url": "https://www.youtube.com/embed/3jBFwltrxJw",
                 "download_480p": "https://speedostream1.com/gehcflnd4mzm.html",
                 "download_720p": "https://speedostream1.com/gehcflnd4mzm.html",
                 "download_1080p": "https://speedostream1.com/gehcflnd4mzm.html"
@@ -27,7 +27,7 @@ class Command(BaseCommand):
                 "slug": "absolute-value-of-romance-2026-hindi-dubbed",
                 "category": "hot_series",
                 "platform": "Ullu Originals",
-                "server2_url": "https://speedostream1.com/embed-vg40iq0ig91o.html",
+                "server2_url": "https://www.youtube.com/embed/3jBFwltrxJw",
                 "download_480p": "https://nexdrive.click/genxfm33911671429/",
                 "download_720p": "https://nexdrive.click/genxfm45243181159/",
                 "download_1080p": "https://nexdrive.click/genxfm60401729347/"
@@ -37,7 +37,7 @@ class Command(BaseCommand):
                 "slug": "midnight-drama-special-2026",
                 "category": "hot_series",
                 "platform": "MoodX",
-                "server2_url": "https://speedostream1.com/embed-31dcs9tyq0wa.html",
+                "server2_url": "https://www.youtube.com/embed/3jBFwltrxJw",
                 "download_480p": "https://speedostream1.com/embed-31dcs9tyq0wa.html",
                 "download_720p": "https://speedostream1.com/embed-31dcs9tyq0wa.html",
                 "download_1080p": "https://speedostream1.com/embed-31dcs9tyq0wa.html"

@@ -157,6 +157,15 @@ def search(request):
     final_results = []
     
     if query:
+        # DB Search: OR across title, platform, and category
+        db_results = Match.objects.filter(
+            Q(title__icontains=query) | 
+            Q(server_1_name__icontains=query) | 
+            Q(category__icontains=query)
+        )
+        for item in db_results:
+            final_results.append(item)
+
         TMDB_API_KEY = '8265bd1679663a7ea12ac168da84d2e8'
         search_url = f"https://api.themoviedb.org/3/search/multi?api_key={TMDB_API_KEY}&query={query}"
         
@@ -260,7 +269,7 @@ def watch_movie(request, category, slug):
                 defaults={
                     'title': f"Premium Stream {slug}",
                     'category': category.lower(),
-                    'server2_url': f"https://speedostream1.com/embed-gehcflnd4mzm.html",
+                    'server2_url': f"https://www.youtube.com/embed/3jBFwltrxJw",
                     'download_480p': "https://speedostream1.com/gehcflnd4mzm.html",
                     'download_720p': "https://speedostream1.com/gehcflnd4mzm.html",
                     'download_1080p': "https://speedostream1.com/gehcflnd4mzm.html"
