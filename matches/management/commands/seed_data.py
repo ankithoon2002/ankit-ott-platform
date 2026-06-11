@@ -1,15 +1,15 @@
 from django.core.management.base import BaseCommand
 from matches.models import Match
+from django.utils import timezone
 
 class Command(BaseCommand):
-    help = 'Bulk ingests automated movie data with smart streaming and download fallback logic'
+    help = 'Bulk ingests automated movie data and sports data'
 
     def handle(self, *args, **kwargs):
-        # Completely wipe old database entries as requested
-        self.stdout.write(self.style.WARNING('Wiping old database entries...'))
-        Match.objects.filter(category__in=['movie', 'anime', 'kids']).delete()
+        self.stdout.write(self.style.WARNING('Updating database with OTT and Sports content...'))
 
-        bulk_content = [
+        # 1. OTT CONTENT (16 ITEMS)
+        bulk_ott = [
             {"title": "Trending Blockbuster Vol 1", "category": "movie", "stream_url": "https://gemma416okl.com/play/tt36642456", "download_url": ""},
             {"title": "Trending Blockbuster Vol 2", "category": "movie", "stream_url": "https://gemma416okl.com/play/tt39398549", "download_url": ""},
             {"title": "Popular Premium Feature", "category": "movie", "stream_url": "https://gemma416okl.com/play/tt8036976", "download_url": ""},
@@ -28,17 +28,34 @@ class Command(BaseCommand):
             {"title": "Epic Anime Legends", "category": "anime", "stream_url": "https://speedostream1.com/embed-vg40iq0ig91o.html", "download_url": ""}
         ]
 
-        self.stdout.write(self.style.NOTICE(f'Starting bulk ingestion of {len(bulk_content)} items...'))
-        
-        # Default poster placeholder
+        # 2. SPORTS CONTENT (Sample Data)
+        bulk_sports = [
+            {
+                "title": "India vs Pakistan - T20 World Cup",
+                "category": "LIVE_SPORTS",
+                "stream_url": "https://speedostream1.com/embed-hslzn301lnu9.html",
+                "tournament": "ICC T20 World Cup 2026",
+                "venue": "Narendra Modi Stadium",
+                "status": "India won by 6 runs",
+                "toss": "Pakistan won the toss and elected to field"
+            },
+            {
+                "title": "Australia vs England - The Ashes",
+                "category": "LIVE_SPORTS",
+                "stream_url": "https://speedostream1.com/embed-c2bjfn0nfff3.html",
+                "tournament": "The Ashes 2026",
+                "venue": "MCG, Melbourne",
+                "status": "Day 3: Tea Break",
+                "toss": "Australia won the toss and elected to bat"
+            }
+        ]
+
         DEFAULT_POSTER = "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=500&auto=format&fit=crop"
 
-        for item in bulk_content:
-            # Fallback logic for download_url
+        # Ingest OTT
+        for item in bulk_ott:
             download_url = item["download_url"] if item["download_url"] else item["stream_url"]
-
-            # Prevent Repeat Duplicates using unique key matching on server2_url
-            match, created = Match.objects.update_or_create(
+            Match.objects.update_or_create(
                 server2_url=item["stream_url"],
                 defaults={
                     "title": item["title"],
@@ -49,8 +66,24 @@ class Command(BaseCommand):
                     "stream_type": "iframe"
                 }
             )
-            
-            status = "Created" if created else "Updated"
-            self.stdout.write(self.style.SUCCESS(f'{status}: {item["title"]}'))
 
-        self.stdout.write(self.style.SUCCESS('Bulk ingestion completed successfully!'))
+        # Ingest Sports
+        for item in bulk_sports:
+            Match.objects.update_or_create(
+                title=item["title"],
+                category=item["category"],
+                defaults={
+                    "live_link": item["stream_url"],
+                    "server2_url": item["stream_url"],
+                    "tournament": item["tournament"],
+                    "venue": item["venue"],
+                    "match_status_text": item["status"],
+                    "description": item["toss"],
+                    "match_date": timezone.now().date(),
+                    "match_time": timezone.now().time(),
+                    "is_live": True,
+                    "stream_type": "iframe"
+                }
+            )
+
+        self.stdout.write(self.style.SUCCESS('Successfully ingested both OTT and Sports content!'))

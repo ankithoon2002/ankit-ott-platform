@@ -9,6 +9,7 @@ class Match(models.Model):
         ('movie', 'Movies'),
         ('anime', 'Anime'),
         ('kids', 'Kids/Cartoons'),
+        ('web_series', 'Web Series'),
         ('TRENDING_MOVIES', 'Trending Movies (Legacy)'),
         ('BHOJPURI_HITS', 'Bhojpuri Hits (Legacy)'),
         ('SOUTH_HINDI', 'South Indian Hindi (Legacy)'),

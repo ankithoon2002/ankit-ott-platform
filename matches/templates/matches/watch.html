@@ -222,142 +222,165 @@
         <!-- LEFT COLUMN: PLAYER & INFO -->
         <div class="w-full lg:w-[75%] space-y-6">
             <div class="video-container shadow-2xl lg:rounded-2xl overflow-hidden bg-black border border-slate-800 group/player">
-                {% if match.stream_type == 'm3u8' %}
-                    <video id="streampulse-player" class="w-full h-full object-contain" preload="auto">
-                        <source src="{{ match.live_link }}" type="application/x-mpegURL">
-                    </video>
-                    
-                    <!-- Custom Controls Overlay -->
-                    <div class="video-controls group-hover/player:opacity-100">
-                        <button class="control-btn" id="playPauseBtn" title="Play/Pause">
-                            <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                            <svg id="pauseIcon" class="hidden" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                        </button>
-
-                        <button class="control-btn" id="skipBackBtn" title="Back 10s">
-                            <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05 1-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
-                            <span class="text-[8px] absolute mt-1">10</span>
-                        </button>
-
-                        <button class="control-btn" id="skipForwardBtn" title="Forward 10s">
-                            <svg viewBox="0 0 24 24"><path d="M11.5 8c2.65 0 5.05 1 6.9 2.6L22 7v9h-9l3.62-3.62c-1.39-1.16-3.16-1.88-5.12-1.88-3.54 0-6.55 2.31-7.6 5.5l-2.37-.78C2.92 11.03 6.85 8 11.5 8z"/></svg>
-                            <span class="text-[8px] absolute mt-1">10</span>
-                        </button>
-
-                        <div class="text-xs font-mono text-white min-w-[100px]" id="timeDisplay">0:00 / 0:00</div>
-
-                        <div class="progress-container" id="progressContainer">
-                            <div class="progress-bar" id="progressBar"></div>
-                        </div>
-
-                        <div class="volume-container">
-                            <button class="control-btn" id="muteBtn" title="Mute/Unmute">
-                                <svg id="volumeIcon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-                                <svg id="muteIcon" class="hidden" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
-                            </button>
-                            <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="1">
-                        </div>
-                        
-                        <button class="control-btn" id="fullscreenBtn" title="Fullscreen">
-                            <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
-                        </button>
-                    </div>
+                {% if match.category == 'movie' or match.category == 'anime' or match.category == 'kids' or match.category == 'web_series' %}
+                    <!-- PURE OTT MOVIE PLAYER -->
+                    <iframe id="mainPlayerFrame" class="w-full h-full" src="{{ match.server2_url }}" frameborder="0" scrolling="NO" allowfullscreen="true" width="100%" height="100%"></iframe>
                 {% else %}
-                    {% if match.server2_url %}
-                        <iframe id="mainPlayerFrame" class="w-full h-full" src="{{ match.server2_url }}" frameborder="0" scrolling="NO" allowfullscreen="true" width="100%" height="100%"></iframe>
-                    {% else %}
-                        <div class="w-full h-full flex flex-col items-center justify-center bg-slate-900 text-slate-400 p-8 text-center">
-                            <svg class="w-16 h-16 mb-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                            <h2 class="text-xl font-bold text-white mb-2">Video Not Found</h2>
-                            <p class="text-sm">We couldn't find the streaming source for this content. Please try another server or check back later.</p>
-                            <a href="{% url 'home' %}" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold transition">Back to Home</a>
+                    <!-- SPORTS PLAYER / LEGACY -->
+                    {% if match.stream_type == 'm3u8' %}
+                        <video id="streampulse-player" class="w-full h-full object-contain" preload="auto">
+                            <source src="{{ match.live_link }}" type="application/x-mpegURL">
+                        </video>
+                        
+                        <!-- Custom Controls Overlay -->
+                        <div class="video-controls group-hover/player:opacity-100">
+                            <button class="control-btn" id="playPauseBtn" title="Play/Pause">
+                                <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <svg id="pauseIcon" class="hidden" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                            </button>
+
+                            <button class="control-btn" id="skipBackBtn" title="Back 10s">
+                                <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05 1-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
+                                <span class="text-[8px] absolute mt-1">10</span>
+                            </button>
+
+                            <button class="control-btn" id="skipForwardBtn" title="Forward 10s">
+                                <svg viewBox="0 0 24 24"><path d="M11.5 8c2.65 0 5.05 1 6.9 2.6L22 7v9h-9l3.62-3.62c-1.39-1.16-3.16-1.88-5.12-1.88-3.54 0-6.55 2.31-7.6 5.5l-2.37-.78C2.92 11.03 6.85 8 11.5 8z"/></svg>
+                                <span class="text-[8px] absolute mt-1">10</span>
+                            </button>
+
+                            <div class="text-xs font-mono text-white min-w-[100px]" id="timeDisplay">0:00 / 0:00</div>
+
+                            <div class="progress-container" id="progressContainer">
+                                <div class="progress-bar" id="progressBar"></div>
+                            </div>
+
+                            <div class="volume-container">
+                                <button class="control-btn" id="muteBtn" title="Mute/Unmute">
+                                    <svg id="volumeIcon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                                    <svg id="muteIcon" class="hidden" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+                                </button>
+                                <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="1">
+                            </div>
+                            
+                            <button class="control-btn" id="fullscreenBtn" title="Fullscreen">
+                                <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+                            </button>
                         </div>
+                    {% else %}
+                        {% if match.server2_url or match.live_link %}
+                            <iframe id="mainPlayerFrame" class="w-full h-full" src="{% if match.live_link %}{{ match.live_link }}{% else %}{{ match.server2_url }}{% endif %}" frameborder="0" scrolling="NO" allowfullscreen="true" width="100%" height="100%"></iframe>
+                        {% else %}
+                            <div class="w-full h-full flex flex-col items-center justify-center bg-slate-900 text-slate-400 p-8 text-center">
+                                <svg class="w-16 h-16 mb-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                <h2 class="text-xl font-bold text-white mb-2">Video Not Found</h2>
+                                <p class="text-sm">We couldn't find the streaming source for this content. Please try another server or check back later.</p>
+                                <a href="{% url 'home' %}" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold transition">Back to Home</a>
+                            </div>
+                        {% endif %}
                     {% endif %}
                 {% endif %}
             </div>
 
-            <!-- Scorecard & Match Info Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 px-4 lg:px-0">
-                <!-- Scorecard Panel -->
-                <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 flex flex-col justify-center relative overflow-hidden">
-                    {% if match.team_a_score == "0/0" and match.team_b_score == "Yet to Bat" and match.category != 'LIVE_SPORTS' %}
-                        <div class="text-center">
-                            <p class="text-sm font-bold text-slate-400">Live TV Channel Mode</p>
-                            <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Check active match cards for real-time scores!</p>
-                        </div>
-                    {% else %}
-                        <div class="absolute top-0 right-0 p-3">
-                             <span class="flex items-center text-[10px] font-black bg-red-600 text-white px-2 py-0.5 rounded-full animate-pulse-red">LIVE</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <div class="text-center flex-1">
-                                <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mb-2">Team A</p>
-                                <h2 class="text-3xl font-black text-white" id="teamAScore">{{ match.team_a_score }}</h2>
-                            </div>
-                            <div class="px-4">
-                                <span class="bg-slate-800 text-slate-400 text-[10px] font-black px-3 py-1 rounded-full border border-slate-700">VS</span>
-                            </div>
-                            <div class="text-center flex-1">
-                                <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mb-2">Team B</p>
-                                <h2 class="text-3xl font-black text-white" id="teamBScore">{{ match.team_b_score }}</h2>
-                            </div>
-                        </div>
-                        <div class="mt-4 text-center">
-                            <p class="text-sm font-bold text-blue-400" id="matchStatus">{{ match.match_status_text }}</p>
-                        </div>
-                    {% endif %}
-                </div>
-
-                <!-- Match Info Panel -->
+            {% if match.category == 'movie' or match.category == 'anime' or match.category == 'kids' or match.category == 'web_series' %}
+                <!-- OTT DETAILS VIEW -->
                 <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
-                    <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Match Information</h3>
-                    <table class="w-full text-sm">
-                        <tr class="border-b border-slate-800/50">
-                            <td class="py-2 text-slate-400 font-medium">Tournament</td>
-                            <td class="py-2 text-right font-bold text-slate-200">{{ match.tournament }}</td>
-                        </tr>
-                        <tr class="border-b border-slate-800/50">
-                            <td class="py-2 text-slate-400 font-medium">Venue</td>
-                            <td class="py-2 text-right font-bold text-slate-200">{{ match.venue }}</td>
-                        </tr>
-                        <tr class="border-b border-slate-800/50">
-                            <td class="py-2 text-slate-400 font-medium">Status</td>
-                            <td class="py-2 text-right font-bold text-green-500">Live Coverage</td>
-                        </tr>
-                        <tr>
-                            <td class="py-2 text-slate-400 font-medium">Toss</td>
-                            <td class="py-2 text-right font-bold text-slate-200">Decided at Stadium</td>
-                        </tr>
-                    </table>
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                        <div>
+                            <h1 class="text-3xl font-black text-white tracking-tighter">{{ match.title }}</h1>
+                            <div class="flex items-center gap-3 mt-2">
+                                <span class="bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded uppercase">{{ match.get_category_display }}</span>
+                                <span class="text-slate-500 text-xs font-bold">HD 1080p</span>
+                                <span class="text-slate-500 text-xs font-bold">Dual Audio</span>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-auto">
+                            <a href="{% if match.download_url %}{{ match.download_url }}{% else %}{{ match.server2_url }}{% endif %}" target="_blank" download class="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-xl font-bold text-xs text-center flex items-center justify-center transition shadow-lg shadow-green-900/20">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                📥 Download Movie
+                            </a>
+                        </div>
+                    </div>
+                    <p class="text-slate-400 text-sm leading-relaxed max-w-4xl">
+                        {{ match.description|default:"Stream the latest movies and shows in high quality. Enjoy a premium viewing experience with our professional player and fast streaming links." }}
+                    </p>
                 </div>
-            </div>
+            {% else %}
+                <!-- SPORTS DETAILS VIEW -->
+                <!-- Scorecard & Match Info Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 px-4 lg:px-0">
+                    <!-- Scorecard Panel -->
+                    <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 flex flex-col justify-center relative overflow-hidden">
+                        {% if match.team_a_score == "0/0" and match.team_b_score == "Yet to Bat" and match.category != 'LIVE_SPORTS' %}
+                            <div class="text-center">
+                                <p class="text-sm font-bold text-slate-400">Live TV Channel Mode</p>
+                                <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Check active match cards for real-time scores!</p>
+                            </div>
+                        {% else %}
+                            <div class="absolute top-0 right-0 p-3">
+                                <span class="flex items-center text-[10px] font-black bg-red-600 text-white px-2 py-0.5 rounded-full animate-pulse-red">LIVE</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="text-center flex-1">
+                                    <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mb-2">Team A</p>
+                                    <h2 class="text-3xl font-black text-white" id="teamAScore">{{ match.team_a_score }}</h2>
+                                </div>
+                                <div class="px-4">
+                                    <span class="bg-slate-800 text-slate-400 text-[10px] font-black px-3 py-1 rounded-full border border-slate-700">VS</span>
+                                </div>
+                                <div class="text-center flex-1">
+                                    <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mb-2">Team B</p>
+                                    <h2 class="text-3xl font-black text-white" id="teamBScore">{{ match.team_b_score }}</h2>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-center">
+                                <p class="text-sm font-bold text-blue-400" id="matchStatus">{{ match.match_status_text }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
 
-            <!-- Title and Description -->
-            <div class="px-4 lg:px-0">
-                <div class="flex flex-col md:flex-row justify-between items-start mb-2">
-                    <div class="flex-1">
-                        <h1 class="text-2xl lg:text-3xl font-black text-white mb-2" id="activeChannelTitle">{{ match.title }} - {{ match.server_1_badge }}</h1>
+                    <!-- Match Info Panel -->
+                    <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
+                        <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Match Information</h3>
+                        <table class="w-full text-sm">
+                            <tr class="border-b border-slate-800/50">
+                                <td class="py-2 text-slate-400 font-medium">Tournament</td>
+                                <td class="py-2 text-right font-bold text-slate-200">{{ match.tournament }}</td>
+                            </tr>
+                            <tr class="border-b border-slate-800/50">
+                                <td class="py-2 text-slate-400 font-medium">Venue</td>
+                                <td class="py-2 text-right font-bold text-slate-200">{{ match.venue }}</td>
+                            </tr>
+                            <tr class="border-b border-slate-800/50">
+                                <td class="py-2 text-slate-400 font-medium">Status</td>
+                                <td class="py-2 text-right font-bold text-green-500">Live Coverage</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 text-slate-400 font-medium">Toss</td>
+                                <td class="py-2 text-right font-bold text-slate-200">{{ match.description|default:"Decided at Stadium" }}</td>
+                            </tr>
+                        </table>
                     </div>
-                    {% if match.category == 'movie' or match.category == 'anime' or match.category == 'kids' %}
-                    <div class="w-full md:w-auto mt-4 md:mt-0">
-                        <a href="{% if match.download_url %}{{ match.download_url }}{% else %}{{ match.server2_url }}{% endif %}" target="_blank" download class="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-xl font-bold text-xs text-center flex items-center justify-center transition shadow-lg shadow-green-900/20">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                            📥 Download Movie
-                        </a>
-                    </div>
-                    {% endif %}
                 </div>
-                <p class="text-slate-400 text-sm leading-relaxed max-w-4xl">
-                    {{ match.description|default:"Catch the live action, pulse-pounding moments, and every boundary here on StreamPulse. Switch between multiple servers for the best viewing experience." }}
-                </p>
-            </div>
+
+                <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
+                    <h1 class="text-xl font-black text-white tracking-tighter mb-4">{{ match.title }}</h1>
+                    <p class="text-slate-400 text-sm leading-relaxed max-w-4xl">
+                        Catch the live action, pulse-pounding moments, and every boundary here on StreamPulse. Switch between multiple servers for the best viewing experience.
+                    </p>
+                </div>
+            {% endif %}
 
             <div class="px-4 lg:px-0 pt-8">
                 <h3 class="text-xl font-black text-white mb-6 uppercase tracking-tighter flex items-center">
                     <span class="w-1.5 h-6 bg-blue-600 mr-3 rounded-full"></span>
-                    Related Movies / Recommended Shows
+                    {% if match.category == 'movie' or match.category == 'anime' or match.category == 'kids' or match.category == 'web_series' %}
+                        Related Movies / Recommended Shows
+                    {% else %}
+                        Watch More / Sports Highlights
+                    {% endif %}
                 </h3>
                 <div class="relative group">
                     <!-- Navigation Buttons -->
@@ -369,29 +392,55 @@
                     </button>
 
                     <div id="relatedSlider" class="flex overflow-x-auto gap-4 hide-scrollbar pb-4 snap-x">
-                        {% for movie in related_movies %}
-                        <a href="{% url 'watch_movie' movie.category movie.tmdb_id|default:movie.id %}" class="min-w-[160px] md:min-w-[180px] snap-start group block bg-slate-900/40 border border-slate-800 rounded-2xl overflow-hidden hover:border-blue-500/50 transition-all duration-300 transform hover:-translate-y-1">
-                            <div class="aspect-[2/3] relative overflow-hidden">
-                                {% if movie.poster_url %}
-                                <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
-                                {% else %}
-                                <div class="w-full h-full bg-slate-800 flex items-center justify-center">
-                                    <svg class="w-12 h-12 text-slate-700" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"/></svg>
+                        {% if match.category == 'movie' or match.category == 'anime' or match.category == 'kids' or match.category == 'web_series' %}
+                            {% for movie in related_movies %}
+                            <a href="{% url 'watch_movie' movie.category movie.tmdb_id|default:movie.id %}" class="min-w-[160px] md:min-w-[180px] snap-start group block bg-slate-900/40 border border-slate-800 rounded-2xl overflow-hidden hover:border-blue-500/50 transition-all duration-300 transform hover:-translate-y-1">
+                                <div class="aspect-[2/3] relative overflow-hidden">
+                                    {% if movie.poster_url %}
+                                    <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                                    {% else %}
+                                    <div class="w-full h-full bg-slate-800 flex items-center justify-center">
+                                        <svg class="w-12 h-12 text-slate-700" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"/></svg>
+                                    </div>
+                                    {% endif %}
+                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent opacity-60"></div>
+                                    <div class="absolute bottom-2 left-2 right-2">
+                                        <span class="px-2 py-0.5 bg-blue-600/80 backdrop-blur-sm text-[8px] font-black text-white rounded uppercase">{{ movie.get_category_display }}</span>
+                                    </div>
                                 </div>
-                                {% endif %}
-                                <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent opacity-60"></div>
-                                <div class="absolute bottom-2 left-2 right-2">
-                                    <span class="px-2 py-0.5 bg-blue-600/80 backdrop-blur-sm text-[8px] font-black text-white rounded uppercase">{{ movie.get_category_display }}</span>
+                                <div class="p-3">
+                                    <h4 class="text-xs font-bold text-white truncate group-hover:text-blue-400 transition">{{ movie.title }}</h4>
+                                    <p class="text-[10px] text-slate-500 mt-1">Watch Now</p>
                                 </div>
-                            </div>
-                            <div class="p-3">
-                                <h4 class="text-xs font-bold text-white truncate group-hover:text-blue-400 transition">{{ movie.title }}</h4>
-                                <p class="text-[10px] text-slate-500 mt-1">Watch Now</p>
-                            </div>
-                        </a>
-                        {% empty %}
-                        <p class="text-slate-500 text-sm">No related content available.</p>
-                        {% endfor %}
+                            </a>
+                            {% empty %}
+                            <p class="text-slate-500 text-sm">No related content available.</p>
+                            {% endfor %}
+                        {% else %}
+                             {% for match_suggest in suggested_matches %}
+                            <a href="{% url 'watch_match' match_suggest.id %}" class="min-w-[160px] md:min-w-[180px] snap-start group block bg-slate-900/40 border border-slate-800 rounded-2xl overflow-hidden hover:border-blue-500/50 transition-all duration-300 transform hover:-translate-y-1">
+                                <div class="aspect-video relative overflow-hidden bg-slate-800">
+                                    {% if match_suggest.poster_url %}
+                                    <img src="{{ match_suggest.poster_url }}" alt="{{ match_suggest.title }}" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                                    {% else %}
+                                    <div class="w-full h-full flex items-center justify-center">
+                                        <svg class="w-12 h-12 text-slate-700" fill="currentColor" viewBox="0 0 24 24"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                    </div>
+                                    {% endif %}
+                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent opacity-60"></div>
+                                    <div class="absolute bottom-2 left-2 right-2">
+                                        <span class="px-2 py-0.5 bg-red-600/80 backdrop-blur-sm text-[8px] font-black text-white rounded uppercase">LIVE</span>
+                                    </div>
+                                </div>
+                                <div class="p-3">
+                                    <h4 class="text-xs font-bold text-white truncate group-hover:text-blue-400 transition">{{ match_suggest.title }}</h4>
+                                    <p class="text-[10px] text-slate-500 mt-1">{{ match_suggest.tournament }}</p>
+                                </div>
+                            </a>
+                            {% empty %}
+                            <p class="text-slate-500 text-sm">No related matches available.</p>
+                            {% endfor %}
+                        {% endif %}
                     </div>
                 </div>
             </div>

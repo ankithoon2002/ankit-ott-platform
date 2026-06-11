@@ -2,9 +2,9 @@
     <a href="{% url 'watch_match' item.id %}" class="block bg-slate-900 rounded-xl overflow-hidden border border-slate-800 {% if item.is_live %}hover:border-red-500/50{% else %}hover:border-slate-700{% endif %} transition-all duration-300 group">
 {% elif item.media_type %}
     <a href="{% url 'watch_movie' item.media_type item.id %}" class="block bg-slate-900 rounded-xl overflow-hidden border border-slate-800 hover:border-blue-500/50 transition-all duration-300 group">
-{% elif item.category == 'movie' or item.category == 'MOVIE' or item.category == 'anime' or item.category == 'kids' %}
+{% elif item.category == 'movie' or item.category == 'MOVIE' or item.category == 'anime' or item.category == 'kids' or item.category == 'web_series' %}
     <a href="{% url 'watch_movie' item.category item.id %}" class="block bg-slate-900 rounded-xl overflow-hidden border border-slate-800 hover:border-blue-500/50 transition-all duration-300 group">
-{% elif item.category == 'TV' %}
+{% elif item.category == 'TV' or item.category == 'TOP_WEB_SERIES' %}
     <a href="{% url 'watch_movie' 'tv' item.id %}" class="block bg-slate-900 rounded-xl overflow-hidden border border-slate-800 hover:border-blue-500/50 transition-all duration-300 group">
 {% else %}
     <a href="{% url 'watch_match' item.id %}" class="block bg-slate-900 rounded-xl overflow-hidden border border-slate-800 hover:border-blue-500/50 transition-all duration-300 group">
