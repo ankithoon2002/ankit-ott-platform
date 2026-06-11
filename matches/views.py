@@ -247,27 +247,42 @@ def fetch_live_cricket_score(match):
 
 
 def watch_movie(request, content_type, tmdb_id):
-    # PRIORITIZE DATABASE LOOKUP
-    match_item = Match.objects.filter(id=tmdb_id).first()
-    if not match_item:
+    # DYNAMIC DATABASE LOOKUP - Robust fetching by ID (URL parameter)
+    try:
+        match_item = Match.objects.get(id=tmdb_id)
+    except (Match.DoesNotExist, ValueError):
+        # Try fetching by TMDB ID as a backup
         match_item = Match.objects.filter(tmdb_id=tmdb_id).first()
     
-    # FETCH RELATED MOVIES (Up to 12)
-    related_movies = []
-    if match_item:
+    # Validation: Ensure it exists and is an OTT category
+    if match_item and match_item.category in ['movie', 'anime', 'kids', 'web_series']:
+        # Fetch up to 12 recommended items matching the exact same category
         related_movies = Match.objects.filter(category=match_item.category).exclude(id=match_item.id)[:12]
-
-    context = {
-        'match': match_item,
-        'related_movies': related_movies,
-    }
-
-    return render(request, 'matches/watch.html', context)
+        
+        context = {
+            'match': match_item,
+            'related_movies': related_movies,
+            'is_ott': True,
+            # Explicitly block/clear sports variables from context
+            'toss': None,
+            'team_a': None,
+            'team_b': None,
+            'tournament': None,
+            'venue': None,
+        }
+        return render(request, 'matches/watch.html', context)
+    
+    # Fallback or Error Handling
+    return render(request, 'matches/watch.html', {'match': None, 'error': 'Content Not Found'})
 
 
 def watch_match(request, match_id):
     match = get_object_or_404(Match, id=match_id)
     
+    # Check if this should actually be handled as an OTT content
+    if match.category in ['movie', 'anime', 'kids', 'web_series']:
+        return watch_movie(request, match.category, match.id)
+
     # Check watchlist status
     in_watchlist = False
     if request.user.is_authenticated:
