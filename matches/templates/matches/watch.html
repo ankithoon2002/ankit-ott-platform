@@ -90,6 +90,13 @@
             background: #3b82f6;
             border-radius: 50%;
         }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
         .active-channel {
             border: 2px solid #3b82f6 !important; /* border-blue-500 */
             background-color: rgba(30, 41, 59, 0.5) !important;
@@ -114,9 +121,91 @@
 
 <nav class="sticky top-0 z-50 py-3 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
     <div class="container mx-auto px-4 flex justify-between items-center">
-        <a class="font-black text-2xl tracking-tighter" href="{% url 'home' %}">
-            <span class="text-blue-500">STREAM</span><span class="text-white">PULSE</span>
-        </a>
+                        <a href="{% url 'home' %}" class="font-black text-2xl tracking-tighter mr-8">
+                            <span class="text-blue-500">STREAM</span><span class="text-white">PULSE</span>
+                        </a>
+                        <!-- Mega Dropdown Navigation -->
+                        <div class="hidden lg:flex items-center">
+                            <ul class="flex items-center space-x-6 list-none p-0 m-0">
+                                <li><a href="#" class="text-[10px] font-black uppercase text-slate-300 hover:text-blue-500 transition">Dual Audio</a></li>
+                                <li><a href="#" class="text-[10px] font-black uppercase text-slate-300 hover:text-blue-500 transition">Bollywood</a></li>
+                                
+                                <!-- Hindi Series Mega Dropdown -->
+                                <li class="group/mega static">
+                                    <a href="#" class="text-[10px] font-black uppercase text-slate-300 hover:text-blue-500 transition flex items-center">
+                                        Hindi Series
+                                        <svg class="w-3 h-3 ml-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                                    </a>
+                                    <div class="absolute left-0 right-0 top-full bg-white text-slate-900 shadow-2xl border-t-4 border-blue-500 opacity-0 invisible group-hover/mega:opacity-100 group-hover/mega:visible transition-all duration-300 z-[100] py-10">
+                                        <div class="container mx-auto grid grid-cols-3 gap-8 px-10">
+                                            <div>
+                                                <h6 class="text-[10px] font-black uppercase text-slate-400 border-b border-slate-100 pb-2 mb-4">Premium OTT</h6>
+                                                <ul class="space-y-2 list-none p-0">
+                                                    <li><a href="#" class="text-sm font-bold hover:text-blue-600 transition">Netflix</a></li>
+                                                    <li><a href="#" class="text-sm font-bold hover:text-blue-600 transition">Zee5</a></li>
+                                                    <li><a href="#" class="text-sm font-bold hover:text-blue-600 transition">Hotstar</a></li>
+                                                </ul>
+                                            </div>
+                                            <div>
+                                                <h6 class="text-[10px] font-black uppercase text-slate-400 border-b border-slate-100 pb-2 mb-4">Popular OTT</h6>
+                                                <ul class="space-y-2 list-none p-0">
+                                                    <li><a href="#" class="text-sm font-bold hover:text-blue-600 transition">Amazon Prime</a></li>
+                                                    <li><a href="#" class="text-sm font-bold hover:text-blue-600 transition">Voot</a></li>
+                                                    <li><a href="#" class="text-sm font-bold hover:text-blue-600 transition">Viu</a></li>
+                                                </ul>
+                                            </div>
+                                            <div>
+                                                <h6 class="text-[10px] font-black uppercase text-slate-400 border-b border-slate-100 pb-2 mb-4">Others</h6>
+                                                <ul class="space-y-2 list-none p-0">
+                                                    <li><a href="#" class="text-sm font-bold hover:text-blue-600 transition">Altbalaji</a></li>
+                                                    <li><a href="#" class="text-sm font-bold hover:text-blue-600 transition">Mx Player</a></li>
+                                                    <li><a href="#" class="text-sm font-bold hover:text-blue-600 transition">Sony Liv</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+
+                                <!-- Hot Series Mega Dropdown -->
+                                <li class="group/mega static">
+                                    <a href="#" class="text-[10px] font-black uppercase text-slate-300 hover:text-blue-500 transition flex items-center">
+                                        Hot Series
+                                        <svg class="w-3 h-3 ml-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                                    </a>
+                                    <div class="absolute left-0 right-0 top-full bg-white text-slate-900 shadow-2xl border-t-4 border-blue-500 opacity-0 invisible group-hover/mega:opacity-100 group-hover/mega:visible transition-all duration-300 z-[100] py-10">
+                                        <div class="container mx-auto grid grid-cols-3 gap-8 px-10">
+                                            <div>
+                                                <h6 class="text-[10px] font-black uppercase text-slate-400 border-b border-slate-100 pb-2 mb-4">Trending Tags</h6>
+                                                <ul class="space-y-2 list-none p-0">
+                                                    <li><a href="#" class="text-sm font-bold hover:text-blue-600 transition">Ullu Originals</a></li>
+                                                    <li><a href="#" class="text-sm font-bold hover:text-blue-600 transition">Nuefliks</a></li>
+                                                    <li><a href="#" class="text-sm font-bold hover:text-blue-600 transition">MoodX</a></li>
+                                                    <li><a href="#" class="text-sm font-bold hover:text-blue-600 transition">Besharams</a></li>
+                                                </ul>
+                                            </div>
+                                            <div>
+                                                <h6 class="text-[10px] font-black uppercase text-slate-400 border-b border-slate-100 pb-2 mb-4">Latest Added</h6>
+                                                <ul class="space-y-2 list-none p-0">
+                                                    <li><a href="#" class="text-sm font-bold hover:text-blue-600 transition">Feneomovies</a></li>
+                                                    <li><a href="#" class="text-sm font-bold hover:text-blue-600 transition">Kooku</a></li>
+                                                    <li><a href="#" class="text-sm font-bold hover:text-blue-600 transition">Cinemadosti</a></li>
+                                                    <li><a href="#" class="text-sm font-bold hover:text-blue-600 transition">Rabbit</a></li>
+                                                </ul>
+                                            </div>
+                                            <div>
+                                                <h6 class="text-[10px] font-black uppercase text-slate-400 border-b border-slate-100 pb-2 mb-4">Most Watched</h6>
+                                                <ul class="space-y-2 list-none p-0">
+                                                    <li><a href="#" class="text-sm font-bold hover:text-blue-600 transition">PrimePlay</a></li>
+                                                    <li><a href="#" class="text-sm font-bold hover:text-blue-600 transition">Gupchup</a></li>
+                                                    <li><a href="#" class="text-sm font-bold hover:text-blue-600 transition">HotShots</a></li>
+                                                    <li><a href="#" class="text-sm font-bold hover:text-blue-600 transition">Bolo</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
         <div class="flex items-center space-x-4">
             {% if user.is_authenticated %}
                 <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ user.username }}" alt="Profile" class="w-8 h-8 rounded-full border border-slate-700">
@@ -270,30 +359,40 @@
                     <span class="w-1.5 h-6 bg-blue-600 mr-3 rounded-full"></span>
                     Related Movies / Recommended Shows
                 </h3>
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {% for movie in related_movies %}
-                    <a href="{% url 'watch_movie' movie.category movie.tmdb_id|default:movie.id %}" class="group block bg-slate-900/40 border border-slate-800 rounded-2xl overflow-hidden hover:border-blue-500/50 transition-all duration-300 transform hover:-translate-y-1">
-                        <div class="aspect-[2/3] relative overflow-hidden">
-                            {% if movie.poster_url %}
-                            <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
-                            {% else %}
-                            <div class="w-full h-full bg-slate-800 flex items-center justify-center">
-                                <svg class="w-12 h-12 text-slate-700" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"/></svg>
+                <div class="relative group">
+                    <!-- Navigation Buttons -->
+                    <button onclick="document.getElementById('relatedSlider').scrollBy({left: -300, behavior: 'smooth'})" class="absolute -left-4 top-1/2 -translate-y-1/2 z-10 bg-slate-900/80 border border-slate-800 p-2 rounded-full text-white opacity-0 group-hover:opacity-100 transition shadow-xl">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    <button onclick="document.getElementById('relatedSlider').scrollBy({left: 300, behavior: 'smooth'})" class="absolute -right-4 top-1/2 -translate-y-1/2 z-10 bg-slate-900/80 border border-slate-800 p-2 rounded-full text-white opacity-0 group-hover:opacity-100 transition shadow-xl">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+
+                    <div id="relatedSlider" class="flex overflow-x-auto gap-4 hide-scrollbar pb-4 snap-x">
+                        {% for movie in related_movies %}
+                        <a href="{% url 'watch_movie' movie.category movie.tmdb_id|default:movie.id %}" class="min-w-[160px] md:min-w-[180px] snap-start group block bg-slate-900/40 border border-slate-800 rounded-2xl overflow-hidden hover:border-blue-500/50 transition-all duration-300 transform hover:-translate-y-1">
+                            <div class="aspect-[2/3] relative overflow-hidden">
+                                {% if movie.poster_url %}
+                                <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                                {% else %}
+                                <div class="w-full h-full bg-slate-800 flex items-center justify-center">
+                                    <svg class="w-12 h-12 text-slate-700" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"/></svg>
+                                </div>
+                                {% endif %}
+                                <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent opacity-60"></div>
+                                <div class="absolute bottom-2 left-2 right-2">
+                                    <span class="px-2 py-0.5 bg-blue-600/80 backdrop-blur-sm text-[8px] font-black text-white rounded uppercase">{{ movie.get_category_display }}</span>
+                                </div>
                             </div>
-                            {% endif %}
-                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent opacity-60"></div>
-                            <div class="absolute bottom-2 left-2 right-2">
-                                <span class="px-2 py-0.5 bg-blue-600/80 backdrop-blur-sm text-[8px] font-black text-white rounded uppercase">{{ movie.get_category_display }}</span>
+                            <div class="p-3">
+                                <h4 class="text-xs font-bold text-white truncate group-hover:text-blue-400 transition">{{ movie.title }}</h4>
+                                <p class="text-[10px] text-slate-500 mt-1">Watch Now</p>
                             </div>
-                        </div>
-                        <div class="p-3">
-                            <h4 class="text-xs font-bold text-white truncate group-hover:text-blue-400 transition">{{ movie.title }}</h4>
-                            <p class="text-[10px] text-slate-500 mt-1">Watch Now</p>
-                        </div>
-                    </a>
-                    {% empty %}
-                    <p class="text-slate-500 text-sm">No related content available.</p>
-                    {% endfor %}
+                        </a>
+                        {% empty %}
+                        <p class="text-slate-500 text-sm">No related content available.</p>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
 

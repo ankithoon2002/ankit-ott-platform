@@ -10,18 +10,22 @@ class Command(BaseCommand):
         Match.objects.filter(category__in=['movie', 'anime', 'kids']).delete()
 
         bulk_content = [
-            {"title": "Office Romance (Hindi Dubbed) 1080p", "category": "movie", "stream_url": "https://speedostream1.com/embed-7923ri9cggan.html", "download_url": "https://kiaramia.ydc1wes.me/v/01/00009/7923ri9cggan_x/Prmovies-Office_Romance_Hindi_Dubbed_1080p.mkv.mp4?t=T-kXSxalml3QE09hwN_wKoapfhv-sD5vsOzXLe-Sv5s&s=1781106217&e=21600&f=47409&sp=50000&i=0.0"},
-            {"title": "Return of the Jungle (2026)", "category": "kids", "stream_url": "https://speedostream1.com/embed-4viu7vzs3iv3.html", "download_url": "https://speedostream1.com/embed-4viu7vzs3iv3.html"},
-            {"title": "Chhota Bheem Aur Registaan Ka Shehenshah", "category": "kids", "stream_url": "https://speedostream1.com/embed-c2bjfn0nfff3.html", "download_url": "https://speedostream1.com/embed-c2bjfn0nfff3.html"},
-            {"title": "Dragon Ball Super: Saiyan Legacy", "category": "anime", "stream_url": "https://speedostream1.com/embed-b1ygldgnnfa3.html", "download_url": "https://speedostream1.com/embed-b1ygldgnnfa3.html"},
-            {"title": "Motu Patlu & The Secret of Devil's Heart", "category": "kids", "stream_url": "https://speedostream1.com/embed-hslzn301lnu9.html", "download_url": "https://speedostream1.com/embed-hslzn301lnu9.html"},
-            {"title": "Anime Chronicle Vol 1", "category": "anime", "stream_url": "https://speedostream1.com/embed-mdoxm4rwldja.html", "download_url": "https://speedostream1.com/embed-mdoxm4rwldja.html"},
-            {"title": "Kids Special Adventure", "category": "kids", "stream_url": "https://speedostream1.com/embed-nxo1rxyj0r6e.html", "download_url": "https://speedostream1.com/embed-nxo1rxyj0r6e.html"},
-            {"title": "Ben 10: Alien Force Reunion", "category": "kids", "stream_url": "https://speedostream1.com/embed-6uifjkzwmerq.html", "download_url": "https://speedostream1.com/embed-6uifjkzwmerq.html"},
-            {"title": "Ninja Hattori: The Great Race", "category": "kids", "stream_url": "https://speedostream1.com/embed-oq16vwpm3200.html", "download_url": "https://speedostream1.com/embed-oq16vwpm3200.html"},
-            {"title": "Demon Slayer: Mugen Train Special", "category": "anime", "stream_url": "https://speedostream1.com/embed-g0ixx7bwqf5n.html", "download_url": "https://speedostream1.com/embed-g0ixx7bwqf5n.html"},
-            {"title": "Perman: Saving the City", "category": "kids", "stream_url": "https://speedostream1.com/embed-pk1yfzr3alk3.html", "download_url": "https://speedostream1.com/embed-pk1yfzr3alk3.html"},
-            {"title": "Attack on Titan: Final Chronicle", "category": "anime", "stream_url": "https://speedostream1.com/embed-pxt1gp7arp5r.html", "download_url": "https://speedostream1.com/embed-pxt1gp7arp5r.html"}
+            {"title": "Trending Blockbuster Vol 1", "category": "movie", "stream_url": "https://gemma416okl.com/play/tt36642456", "download_url": ""},
+            {"title": "Trending Blockbuster Vol 2", "category": "movie", "stream_url": "https://gemma416okl.com/play/tt39398549", "download_url": ""},
+            {"title": "Popular Premium Feature", "category": "movie", "stream_url": "https://gemma416okl.com/play/tt8036976", "download_url": ""},
+            {"title": "Top Hit Movie Collection", "category": "movie", "stream_url": "https://gemma416okl.com/play/tt37170821", "download_url": ""},
+            {"title": "Exclusive Web Series Premium", "category": "web_series", "stream_url": "https://gemma416okl.com/play/tt18069420", "download_url": ""},
+            {"title": "PrMovies HD Special Feature", "category": "movie", "stream_url": "https://gemma416okl.com/play/tt28754073", "download_url": ""},
+            {"title": "Animated Feature Adventure 1", "category": "kids", "stream_url": "https://speedostream1.com/embed-i5916io10byy.html", "download_url": ""},
+            {"title": "Animated Feature Adventure 2", "category": "kids", "stream_url": "https://speedostream1.com/embed-6sij96wqknac.html", "download_url": ""},
+            {"title": "Kids Nonstop Cartoon Special", "category": "kids", "stream_url": "https://speedostream1.com/embed-t0jkhhemfif1.html", "download_url": ""},
+            {"title": "Anime Chronicle Universe 1", "category": "anime", "stream_url": "https://speedostream1.com/embed-wrsbo0zxfh0f.html", "download_url": ""},
+            {"title": "Anime Chronicle Universe 2", "category": "anime", "stream_url": "https://speedostream1.com/embed-rujp6nx2ejx9.html", "download_url": ""},
+            {"title": "Kids Mega Show Fun", "category": "kids", "stream_url": "https://speedostream1.com/embed-5djfxv5471k5.html", "download_url": ""},
+            {"title": "Super Anime Saga Edition", "category": "anime", "stream_url": "https://speedostream1.com/embed-k5itgrlzlt07.html", "download_url": ""},
+            {"title": "Classic Animated Tale", "category": "kids", "stream_url": "https://speedostream1.com/embed-31dcs9tyq0wa.html", "download_url": ""},
+            {"title": "Kids Fun Cartoon Episode", "category": "kids", "stream_url": "https://speedostream1.com/embed-5banywhrx9zb.html", "download_url": ""},
+            {"title": "Epic Anime Legends", "category": "anime", "stream_url": "https://speedostream1.com/embed-vg40iq0ig91o.html", "download_url": ""}
         ]
 
         self.stdout.write(self.style.NOTICE(f'Starting bulk ingestion of {len(bulk_content)} items...'))
@@ -30,13 +34,16 @@ class Command(BaseCommand):
         DEFAULT_POSTER = "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=500&auto=format&fit=crop"
 
         for item in bulk_content:
+            # Fallback logic for download_url
+            download_url = item["download_url"] if item["download_url"] else item["stream_url"]
+
             # Prevent Repeat Duplicates using unique key matching on server2_url
-            match, created = Match.objects.get_or_create(
+            match, created = Match.objects.update_or_create(
                 server2_url=item["stream_url"],
                 defaults={
                     "title": item["title"],
                     "category": item["category"],
-                    "download_url": item["download_url"],
+                    "download_url": download_url,
                     "is_featured": True,
                     "poster_url": DEFAULT_POSTER,
                     "stream_type": "iframe"

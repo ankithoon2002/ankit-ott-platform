@@ -26,18 +26,57 @@
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
         }
-        /* Override Bootstrap dark background to match our theme */
+        /* Mega Dropdown Styling */
+        .mega-dropdown {
+            position: static !important;
+        }
+        .mega-menu {
+            display: none;
+            position: absolute;
+            width: 100%;
+            left: 0;
+            top: 100%;
+            background: white;
+            color: #333;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border-top: 4px solid #10b981; /* Green border accent */
+            z-index: 1000;
+            padding: 30px 0;
+        }
+        .nav-item:hover .mega-menu {
+            display: block;
+        }
+        .mega-menu h6 {
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            color: #999;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .mega-menu ul {
+            list-style: none;
+            padding: 0;
+        }
+        .mega-menu ul li a {
+            display: block;
+            padding: 5px 0;
+            color: #333;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .mega-menu ul li a:hover {
+            color: #10b981;
+        }
+        
+        /* Navbar styling */
         .navbar-dark-custom {
             background-color: #020617 !important;
             border-bottom: 1px solid #1e293b;
-        }
-        .dropdown-menu-dark-custom {
-            background-color: #0f172a;
-            border: 1px solid #1e293b;
-        }
-        .dropdown-item:hover {
-            background-color: #1e293b;
-            color: white;
         }
     </style>
 </head>
@@ -50,11 +89,90 @@
             </a>
 
             <!-- Navigation Links for Categories -->
-            <div class="hidden lg:flex items-center space-x-6 ml-8">
-                <a href="{% url 'home' %}" class="text-white hover:text-red-500 font-bold text-sm transition">Movies</a>
-                <a href="#web-series-db" class="text-white/70 hover:text-white font-bold text-sm transition">Web Series</a>
-                <a href="#anime-universe" class="text-white/70 hover:text-white font-bold text-sm transition">Anime</a>
-                <a href="#kids-cartoons" class="text-white/70 hover:text-white font-bold text-sm transition">Kids</a>
+            <div class="hidden lg:flex items-center ml-8">
+                <ul class="navbar-nav space-x-4">
+                    <li class="nav-item"><a href="#" class="nav-link text-xs font-black uppercase">Dual Audio</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link text-xs font-black uppercase">Bollywood</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link text-xs font-black uppercase">Hollywood</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link text-xs font-black uppercase">English Series</a></li>
+                    
+                    <!-- Hindi Series Mega Dropdown -->
+                    <li class="nav-item mega-dropdown">
+                        <a href="#" class="nav-link text-xs font-black uppercase">Hindi Series</a>
+                        <div class="mega-menu">
+                            <div class="container-fluid max-w-7xl mx-auto px-8">
+                                <div class="row">
+                                    <div class="col-4">
+                                        <h6>Premium OTT</h6>
+                                        <ul>
+                                            <li><a href="#">Netflix</a></li>
+                                            <li><a href="#">Zee5</a></li>
+                                            <li><a href="#">Hotstar</a></li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-4">
+                                        <h6>Popular OTT</h6>
+                                        <ul>
+                                            <li><a href="#">Amazon Prime</a></li>
+                                            <li><a href="#">Voot</a></li>
+                                            <li><a href="#">Viu</a></li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-4">
+                                        <h6>Others</h6>
+                                        <ul>
+                                            <li><a href="#">Altbalaji</a></li>
+                                            <li><a href="#">Mx Player</a></li>
+                                            <li><a href="#">Sony Liv</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <li class="nav-item"><a href="#" class="nav-link text-xs font-black uppercase">Genre</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link text-xs font-black uppercase">Extramovies</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link text-xs font-black uppercase">Erotic</a></li>
+
+                    <!-- Hot Series Mega Dropdown -->
+                    <li class="nav-item mega-dropdown">
+                        <a href="#" class="nav-link text-xs font-black uppercase">Hot Series</a>
+                        <div class="mega-menu">
+                            <div class="container-fluid max-w-7xl mx-auto px-8">
+                                <div class="row">
+                                    <div class="col-4">
+                                        <h6>Trending Tags</h6>
+                                        <ul>
+                                            <li><a href="#">Ullu Originals</a></li>
+                                            <li><a href="#">Nuefliks</a></li>
+                                            <li><a href="#">MoodX</a></li>
+                                            <li><a href="#">Besharams</a></li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-4">
+                                        <h6>Latest Added</h6>
+                                        <ul>
+                                            <li><a href="#">Feneomovies</a></li>
+                                            <li><a href="#">Kooku</a></li>
+                                            <li><a href="#">Cinemadosti</a></li>
+                                            <li><a href="#">Rabbit</a></li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-4">
+                                        <h6>Most Watched</h6>
+                                        <ul>
+                                            <li><a href="#">PrimePlay</a></li>
+                                            <li><a href="#">Gupchup</a></li>
+                                            <li><a href="#">HotShots</a></li>
+                                            <li><a href="#">Bolo</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
             </div>
 
             <!-- Modern Netflix-style Search Form -->
