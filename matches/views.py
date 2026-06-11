@@ -247,81 +247,21 @@ def fetch_live_cricket_score(match):
 
 
 def watch_movie(request, content_type, tmdb_id):
-    # DYNAMIC DATABASE LOOKUP - Robust fetching by ID (URL parameter)
-    try:
-        match_item = Match.objects.get(id=tmdb_id)
-    except (Match.DoesNotExist, ValueError):
-        # Try fetching by TMDB ID as a backup
-        match_item = Match.objects.filter(tmdb_id=tmdb_id).first()
+    # SIMPLIFIED WATCH VIEW: Fetch the video object by its ID
+    match = get_object_or_404(Match, id=tmdb_id)
     
-    # Validation: Ensure it exists and is an OTT category
-    if match_item and match_item.category in ['movie', 'anime', 'kids', 'web_series']:
-        # Fetch up to 12 recommended items matching the exact same category
-        related_movies = Match.objects.filter(category=match_item.category).exclude(id=match_item.id)[:12]
-        
-        context = {
-            'match': match_item,
-            'related_movies': related_movies,
-            'is_ott': True,
-            # Explicitly block/clear sports variables from context
-            'toss': None,
-            'team_a': None,
-            'team_b': None,
-            'tournament': None,
-            'venue': None,
-            'debug_info': f"OTT Content: {match_item.title} (ID: {match_item.id})",
-        }
-        print(f"DEBUG: watch_movie rendering OTT: {match_item.title} (ID: {match_item.id})")
-        print(match_item.__dict__)
-        return render(request, 'matches/watch.html', context)
+    # Clean dictionary context
+    context = {'match': match}
     
-    # Fallback or Error Handling
-    return render(request, 'matches/watch.html', {'match': None, 'error': 'Content Not Found'})
+    # Return the template cleanly
+    return render(request, 'matches/watch_movie.html', context)
 
 
 def watch_match(request, match_id):
     match = get_object_or_404(Match, id=match_id)
     
-    # Check if this should actually be handled as an OTT content
-    if match.category in ['movie', 'anime', 'kids', 'web_series']:
-        return watch_movie(request, match.category, match.id)
-
-    # Check watchlist status
-    in_watchlist = False
-    if request.user.is_authenticated:
-        profile_id = request.session.get('active_profile_id')
-        if profile_id:
-            try:
-                in_watchlist = Watchlist.objects.filter(profile_id=profile_id, item=match).exists()
-            except Exception:
-                in_watchlist = False
-
-    # Get suggested matches (simple logic: same tournament or same category)
-    suggested_matches = Match.objects.filter(category=match.category).exclude(id=match.id)[:8]
-
-    # Automated Link Logic (vidsrc.to provider as example)
-    # If it's a movie/anime/kids and live_link is empty, we automate it
-    if not match.live_link and match.category in ['movie', 'anime', 'kids']:
-        if match.imdb_id:
-            match.live_link = f"https://vidsrc.to/embed/movie/{match.imdb_id}"
-        elif match.title:
-            # Note: vidsrc usually prefers IDs, but we can try to find by title if we had tmdb_id
-            # For now, let's assume we use imdb_id if available.
-            pass
-
-    # Server 2 Logic
-    if match.server2_url:
-        match.server_2_link = match.server2_url
-
-    context = {
-        'match': match,
-        'in_watchlist': in_watchlist,
-        'suggested_matches': suggested_matches,
-        'is_ott': False,
-    }
-    print(f"DEBUG: watch_match rendering Sports: {match.title} (ID: {match.id})")
-    print(match.__dict__)
-    return render(request, 'matches/watch.html', context)
+    # SIMPLIFIED REDIRECT: Everything should use the clean watch_movie.html
+    return redirect('watch_movie', content_type=match.category, tmdb_id=match.id)
 
 
 def toggle_watchlist(request, item_id):
