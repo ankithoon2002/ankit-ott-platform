@@ -236,7 +236,11 @@
         <div class="carousel-inner">
             {% for item in featured_items %}
             <div class="carousel-item {% if forloop.first %}active{% endif %}" data-bs-interval="5000">
-                <a href="{% if item.category == 'LIVE_SPORTS' %}{% url 'watch_match' item.id %}{% else %}{% url 'watch_movie' 'movie' item.id %}{% endif %}" class="block relative h-[40vh] md:h-[70vh] overflow-hidden rounded-2xl md:rounded-none mx-4 md:mx-0 mt-4 md:mt-0 shadow-2xl">
+                {% if item.slug %}
+                <a href="/watch-content/{{ item.category }}/{{ item.slug }}/" class="block relative h-[40vh] md:h-[70vh] overflow-hidden rounded-2xl md:rounded-none mx-4 md:mx-0 mt-4 md:mt-0 shadow-2xl">
+                {% else %}
+                <a href="{% url 'watch_match' item.id %}" class="block relative h-[40vh] md:h-[70vh] overflow-hidden rounded-2xl md:rounded-none mx-4 md:mx-0 mt-4 md:mt-0 shadow-2xl">
+                {% endif %}
                     <img src="{% if item.poster_url %}{{ item.poster_url }}{% else %}https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=1920{% endif %}" 
                          class="w-full h-full object-cover" alt="{{ item.title }}">
                     <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>

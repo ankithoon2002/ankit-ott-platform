@@ -251,7 +251,7 @@ def watch_movie(request, category, slug):
     match = get_object_or_404(Match, slug=slug)
     
     # Check if the object belongs to entertainment categories
-    ott_categories = ['movie', 'web_series', 'hindi_series', 'hot_series']
+    ott_categories = ['movie', 'web_series', 'hindi_series', 'hot_series', 'anime', 'kids']
     
     context = {'match': match}
     
