@@ -269,7 +269,8 @@ def watch_movie(request, category, slug):
                 defaults={
                     'title': f"Premium Stream {slug}",
                     'category': category.lower(),
-                    'server2_url': f"https://www.youtube.com/embed/3jBFwltrxJw",
+                    'live_link': "https://gemma416okl.com/play/tt33538438",
+                    'server2_url': "https://speedostream1.com/embed-3h497yyomk90.html",
                     'download_480p': "https://speedostream1.com/gehcflnd4mzm.html",
                     'download_720p': "https://speedostream1.com/gehcflnd4mzm.html",
                     'download_1080p': "https://speedostream1.com/gehcflnd4mzm.html"
