@@ -258,51 +258,86 @@ def fetch_live_cricket_score(match):
 
 
 def watch_movie(request, category, slug):
-    # Support dual fetching (slug text or dynamic database id lookup)
     from django.db.models import Q
-    
+    import requests
+
+    # 1. Lookup in the local database first
     match = Match.objects.filter(
         Q(id=int(slug) if slug.isdigit() else None) | 
         Q(tmdb_id=int(slug) if slug.isdigit() else None) | 
         Q(slug=slug)
     ).first()
 
+    # 2. If NOT in DB and slug is a digit, attempt live fetch, else create a guaranteed mock
+    if not match and slug.isdigit():
+        TMDB_API_KEY = '8265bd1679663a7ea12ac168da84d2e8'
+        tmdb_id = int(slug)
+        
+        is_tv = category.lower() in ['web_series', 'tv', 'hindi_series', 'hot_series', 'top_web_series', 'anime', 'kids']
+        media_type = 'tv' if is_tv else 'movie'
+        
+        tmdb_url = f"https://api.themoviedb.org/3/{media_type}/{tmdb_id}?api_key={TMDB_API_KEY}&append_to_response=external_ids"
+        
+        try:
+            response = requests.get(tmdb_url, timeout=3)
+            if response.status_code == 200:
+                data = response.json()
+                real_title = data.get('title') or data.get('name') or f"Premium Stream {slug}"
+                real_overview = data.get('overview', '')
+                imdb_id = data.get('external_ids', {}).get('imdb_id')
+                poster_path = data.get('poster_path')
+                full_poster = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else None
+                
+                class MockMatch:
+                    id = tmdb_id
+                    tmdb_id = tmdb_id
+                    imdb_id = imdb_id if imdb_id else ""
+                    title = real_title
+                    description = real_overview
+                    category = 'movie' if media_type == 'movie' else 'web_series'
+                    poster_url = full_poster
+                    slug = str(tmdb_id)
+                    server2_url = ""
+                
+                match = MockMatch()
+        except Exception:
+            pass
+
+        # GUARANTEED INSTANT FALLBACK: If API timeouts or fails, do not redirect! Render instantly!
+        if not match:
+            class AbsoluteMockMatch:
+                id = tmdb_id
+                tmdb_id = tmdb_id
+                imdb_id = ""
+                title = f"Premium Stream {slug}"
+                description = "Experience lightning fast premium multi-server streaming source buffers on our global network."
+                category = 'movie' if media_type == 'movie' else 'web_series'
+                poster_url = None
+                slug = str(tmdb_id)
+                server2_url = ""
+            match = AbsoluteMockMatch()
+
+    # 3. Final safety check for absolute missing non-numeric items
     if not match:
-        if slug.isdigit():
-            # Create a mock database object on the fly to bypass 404 crashes
-            match, created = Match.objects.get_or_create(
-                slug=f"movie-{slug}",
-                defaults={
-                    'title': f"Premium Stream {slug}",
-                    'category': category.lower(),
-                    'tmdb_id': int(slug),
-                    'live_link': "https://gemma416okl.com/play/tt33538438",
-                    'server2_url': "https://speedostream1.com/embed-3h497yyomk90.html",
-                    'download_480p': "https://speedostream1.com/gehcflnd4mzm.html",
-                    'download_720p': "https://speedostream1.com/gehcflnd4mzm.html",
-                    'download_1080p': "https://speedostream1.com/gehcflnd4mzm.html"
-                }
-            )
-        else:
-            match = get_object_or_404(Match, slug=slug)
+        return redirect('home')
 
-    # Print debug info to terminal
-    print(f"DEBUG: Rendering watch page for: {match.title} (ID: {match.id}, TMDB: {match.tmdb_id}, Category: {match.category})")
+    print(f"DEBUG PIPELINE: StreamPulse Loading Target -> {match.title} (TMDB: {match.tmdb_id})")
 
-    # Completely separate live cricket variables if category is sports
-    if match.category == 'LIVE_SPORTS' or match.category == 'sports':
+    # Sports Routing Section
+    if getattr(match, 'category', '') in ['LIVE_SPORTS', 'sports']:
         context = {'match': match, 'is_ott': False}
         score_data = fetch_live_cricket_score(match)
         context.update(score_data)
-        context['related_movies'] = Match.objects.filter(category='sports').exclude(id=match.id)[:12]
+        context['related_movies'] = Match.objects.filter(category='sports').exclude(id=getattr(match, 'id', None))[:12]
         return render(request, 'matches/watch_movie.html', context)
     
-    # OTT Entertainment Context
-    related_movies = Match.objects.filter(category=match.category).exclude(id=match.id)[:12]
+    # OTT Entertainment Context & Related Grid Logic
+    current_category = getattr(match, 'category', 'movie')
     context = {
         'match': match,
-        'related_movies': related_movies,
-        'is_ott': True
+        'related_movies': Match.objects.filter(category=current_category)[:12],
+        'is_ott': True,
+        'category': current_category
     }
     return render(request, 'matches/watch_movie.html', context)
 
