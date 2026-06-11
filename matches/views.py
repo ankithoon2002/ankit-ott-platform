@@ -267,7 +267,7 @@ def watch_movie(request, category, slug):
             match, created = Match.objects.get_or_create(
                 slug=f"movie-{slug}",
                 defaults={
-                    'title': f"Premium Stream {slug}",
+                    'title': match.title if 'match' in locals() and match else f"Premium Stream {slug}",
                     'category': category.lower(),
                     'live_link': "https://gemma416okl.com/play/tt33538438",
                     'server2_url': "https://speedostream1.com/embed-3h497yyomk90.html",
@@ -279,6 +279,9 @@ def watch_movie(request, category, slug):
     else:
         # Standard production string slug fetch (PrMovies/Hdmovie2 Style)
         match = get_object_or_404(Match, slug=slug)
+
+    # Print debug info to terminal
+    print(f"DEBUG: Rendering watch page for: {match.title} (ID: {match.id}, Category: {match.category})")
 
     # Completely separate live cricket variables if category is sports
     if match.category == 'LIVE_SPORTS' or match.category == 'sports':
