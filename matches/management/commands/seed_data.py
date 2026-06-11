@@ -11,31 +11,36 @@ class Command(BaseCommand):
         # Clear old items
         Match.objects.all().delete()
 
-        # 1. PREMIUM OTT CONTENT
-        bulk_ott = [
+        bulk_content = [
             {
-                "title": "Exclusive Blockbuster", 
-                "category": "movie", 
-                "platform": "Netflix", 
-                "stream_url": "https://speedostream1.com/embed-vg40iq0ig91o.html"
+                "title": "Spider-Man 2 (2004) Hindi Dubbed",
+                "slug": "spider-man-2-2004-hindi-dubbed-Watch-online-full-movie",
+                "category": "movie",
+                "platform": "Netflix",
+                "server2_url": "https://speedostream1.com/embed-gehcflnd4mzm.html",
+                "download_480p": "https://speedostream1.com/gehcflnd4mzm.html",
+                "download_720p": "https://speedostream1.com/gehcflnd4mzm.html",
+                "download_1080p": "https://speedostream1.com/gehcflnd4mzm.html"
             },
             {
-                "title": "Premium Hindi Drama", 
-                "category": "hindi_series", 
-                "platform": "Amazon Prime", 
-                "stream_url": "https://speedostream1.com/embed-31dcs9tyq0wa.html"
+                "title": "Absolute Value of Romance (2026)",
+                "slug": "absolute-value-of-romance-2026-hindi-dubbed",
+                "category": "hot_series",
+                "platform": "Ullu Originals",
+                "server2_url": "https://speedostream1.com/embed-vg40iq0ig91o.html",
+                "download_480p": "https://nexdrive.click/genxfm33911671429/",
+                "download_720p": "https://nexdrive.click/genxfm45243181159/",
+                "download_1080p": "https://nexdrive.click/genxfm60401729347/"
             },
             {
-                "title": "Hot Series Special", 
-                "category": "hot_series", 
-                "platform": "Ullu Originals", 
-                "stream_url": "https://speedostream1.com/embed-vg40iq0ig91o.html"
-            },
-            {
-                "title": "Midnight Romance", 
-                "category": "hot_series", 
-                "platform": "MoodX", 
-                "stream_url": "https://speedostream1.com/embed-31dcs9tyq0wa.html"
+                "title": "Midnight Drama Special",
+                "slug": "midnight-drama-special-2026",
+                "category": "hot_series",
+                "platform": "MoodX",
+                "server2_url": "https://speedostream1.com/embed-31dcs9tyq0wa.html",
+                "download_480p": "https://speedostream1.com/embed-31dcs9tyq0wa.html",
+                "download_720p": "https://speedostream1.com/embed-31dcs9tyq0wa.html",
+                "download_1080p": "https://speedostream1.com/embed-31dcs9tyq0wa.html"
             }
         ]
 
@@ -43,6 +48,7 @@ class Command(BaseCommand):
         bulk_sports = [
             {
                 "title": "Live Cricket: India vs Pakistan",
+                "slug": "india-vs-pakistan-live-cricket-match-2026",
                 "category": "sports",
                 "stream_url": "https://speedostream1.com/embed-hslzn301lnu9.html",
                 "tournament": "ICC T20 World Cup 2026",
@@ -55,33 +61,41 @@ class Command(BaseCommand):
         DEFAULT_POSTER = "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=500&auto=format&fit=crop"
 
         # Ingest OTT
-        for item in bulk_ott:
-            Match.objects.create(
-                title=item["title"],
-                category=item["category"],
-                server2_url=item["stream_url"],
-                download_url=item["stream_url"], # Direct high speed fallback
-                is_featured=True,
-                poster_url=DEFAULT_POSTER,
-                stream_type="iframe",
-                server_1_name=item["platform"]
+        for item in bulk_content:
+            Match.objects.get_or_create(
+                slug=item["slug"],
+                defaults={
+                    "title": item["title"],
+                    "category": item["category"],
+                    "server2_url": item["server2_url"],
+                    "download_480p": item["download_480p"],
+                    "download_720p": item["download_720p"],
+                    "download_1080p": item["download_1080p"],
+                    "is_featured": True,
+                    "poster_url": DEFAULT_POSTER,
+                    "stream_type": "iframe",
+                    "server_1_name": item["platform"]
+                }
             )
 
         # Ingest Sports
         for item in bulk_sports:
-            Match.objects.create(
-                title=item["title"],
-                category=item["category"],
-                live_link=item["stream_url"],
-                server2_url=item["stream_url"],
-                tournament=item["tournament"],
-                venue=item["venue"],
-                match_status_text=item["status"],
-                description=item["toss"],
-                match_date=timezone.now().date(),
-                match_time=timezone.now().time(),
-                is_live=True,
-                stream_type="iframe"
+            Match.objects.get_or_create(
+                slug=item["slug"],
+                defaults={
+                    "title": item["title"],
+                    "category": item["category"],
+                    "live_link": item["stream_url"],
+                    "server2_url": item["stream_url"],
+                    "tournament": item["tournament"],
+                    "venue": item["venue"],
+                    "match_status_text": item["status"],
+                    "description": item["toss"],
+                    "match_date": timezone.now().date(),
+                    "match_time": timezone.now().time(),
+                    "is_live": True,
+                    "stream_type": "iframe"
+                }
             )
 
-        self.stdout.write(self.style.SUCCESS('Successfully re-seeded with premium tags!'))
+        self.stdout.write(self.style.SUCCESS('Successfully re-seeded with premium tags and slugs!'))

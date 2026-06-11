@@ -246,11 +246,11 @@ def fetch_live_cricket_score(match):
     }
 
 
-def watch_movie(request, content_type, tmdb_id):
-    # DYNAMIC OBJECT FETCHING: Fetch the video object by its ID
-    match = get_object_or_404(Match, id=tmdb_id)
+def watch_movie(request, category, slug):
+    # UNIFIED SLUG ROUTING: Fetch the streaming object via slug
+    match = get_object_or_404(Match, slug=slug)
     
-    # Check if the object belongs to movie/web_series/hindi_series/hot_series
+    # Check if the object belongs to entertainment categories
     ott_categories = ['movie', 'web_series', 'hindi_series', 'hot_series']
     
     context = {'match': match}
@@ -260,13 +260,13 @@ def watch_movie(request, content_type, tmdb_id):
         related_movies = Match.objects.filter(category=match.category).exclude(id=match.id)[:12]
         context['related_movies'] = related_movies
         
-        # Explicitly clear or exclude any cricket-specific static fields if they exist in some base context
-        # (Though in this simplified view they are not added unless we do it here)
+        # Completely exclude all cricket variables from the context dict
+        # is_ott can be used in template for conditional layout
         context['is_ott'] = True
     else:
         # It's a sports item
         context['is_ott'] = False
-        # For sports, we might want score data
+        # For sports, evaluate the cricket system if needed
         score_data = fetch_live_cricket_score(match)
         context.update(score_data)
         # Also related sports
@@ -279,8 +279,12 @@ def watch_movie(request, content_type, tmdb_id):
 def watch_match(request, match_id):
     match = get_object_or_404(Match, id=match_id)
     
-    # SIMPLIFIED REDIRECT: Everything should use the clean watch_movie.html
-    return redirect('watch_movie', content_type=match.category, tmdb_id=match.id)
+    # Redirect to the new slug-based URL
+    if match.slug:
+        return redirect('watch_movie', category=match.category, slug=match.slug)
+    else:
+        # Fallback if slug is missing (should not happen with proper seeding)
+        return redirect('home')
 
 
 def toggle_watchlist(request, item_id):

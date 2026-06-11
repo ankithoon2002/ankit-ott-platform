@@ -2,7 +2,11 @@ from django.db import models
 
 class Match(models.Model):
     is_featured = models.BooleanField(default=False)
+    slug = models.SlugField(max_length=250, unique=True, blank=True, null=True)
     download_url = models.URLField(max_length=500, blank=True, null=True)
+    download_480p = models.URLField(max_length=500, blank=True, null=True)
+    download_720p = models.URLField(max_length=500, blank=True, null=True)
+    download_1080p = models.URLField(max_length=500, blank=True, null=True)
     
     CATEGORY_CHOICES = [
         ('sports', 'Sports'),
