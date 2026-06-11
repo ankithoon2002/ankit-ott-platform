@@ -269,7 +269,10 @@ def watch_movie(request, content_type, tmdb_id):
             'team_b': None,
             'tournament': None,
             'venue': None,
+            'debug_info': f"OTT Content: {match_item.title} (ID: {match_item.id})",
         }
+        print(f"DEBUG: watch_movie rendering OTT: {match_item.title} (ID: {match_item.id})")
+        print(match_item.__dict__)
         return render(request, 'matches/watch.html', context)
     
     # Fallback or Error Handling
@@ -314,7 +317,10 @@ def watch_match(request, match_id):
         'match': match,
         'in_watchlist': in_watchlist,
         'suggested_matches': suggested_matches,
+        'is_ott': False,
     }
+    print(f"DEBUG: watch_match rendering Sports: {match.title} (ID: {match.id})")
+    print(match.__dict__)
     return render(request, 'matches/watch.html', context)
 
 
