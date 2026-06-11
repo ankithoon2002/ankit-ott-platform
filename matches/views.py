@@ -247,11 +247,30 @@ def fetch_live_cricket_score(match):
 
 
 def watch_movie(request, content_type, tmdb_id):
-    # SIMPLIFIED WATCH VIEW: Fetch the video object by its ID
+    # DYNAMIC OBJECT FETCHING: Fetch the video object by its ID
     match = get_object_or_404(Match, id=tmdb_id)
     
-    # Clean dictionary context
+    # Check if the object belongs to movie/web_series/hindi_series/hot_series
+    ott_categories = ['movie', 'web_series', 'hindi_series', 'hot_series']
+    
     context = {'match': match}
+    
+    if match.category in ott_categories:
+        # Explicitly fetch related cards from the SAME category
+        related_movies = Match.objects.filter(category=match.category).exclude(id=match.id)[:12]
+        context['related_movies'] = related_movies
+        
+        # Explicitly clear or exclude any cricket-specific static fields if they exist in some base context
+        # (Though in this simplified view they are not added unless we do it here)
+        context['is_ott'] = True
+    else:
+        # It's a sports item
+        context['is_ott'] = False
+        # For sports, we might want score data
+        score_data = fetch_live_cricket_score(match)
+        context.update(score_data)
+        # Also related sports
+        context['related_movies'] = Match.objects.filter(category='sports').exclude(id=match.id)[:12]
     
     # Return the template cleanly
     return render(request, 'matches/watch_movie.html', context)

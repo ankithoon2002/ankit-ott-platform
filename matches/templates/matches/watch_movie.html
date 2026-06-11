@@ -5,87 +5,74 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ match.title }} - StreamPulse</title>
     <style>
-        body {
-            background-color: #0a0a0a;
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .player-wrapper {
-            background-color: #000;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
-            aspect-ratio: 16 / 9;
-            margin-bottom: 20px;
-        }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-        .movie-details {
-            margin-top: 25px;
-        }
-        h2 {
-            font-size: 28px;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-        .btn-success {
-            padding: 12px 25px;
-            background-color: #28a745;
-            color: white;
-            display: inline-block;
-            margin-top: 15px;
-            font-weight: bold;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.2s;
-        }
-        .btn-success:hover {
-            background-color: #218838;
-        }
-        .navbar {
-            background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
-            padding: 15px 40px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .logo {
-            font-size: 24px;
-            font-weight: 800;
-            color: #1ed760;
-            text-decoration: none;
-            letter-spacing: -1px;
-        }
+        body { background: #0a0a0a; color: #fff; font-family: sans-serif; margin: 0; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+        .player-frame { border-radius: 8px; background: #000; box-shadow: 0 4px 20px rgba(0,0,0,0.8); }
+        .related-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; margin-top: 20px; }
+        .related-card { text-align: center; transition: transform 0.2s; }
+        .related-card:hover { transform: scale(1.03); }
+        .related-card img { width: 100%; border-radius: 8px; aspect-ratio: 2/3; object-fit: cover; }
+        .related-card h4 { font-size: 14px; margin-top: 8px; color: #eee; font-weight: 500; }
+        .btn-download { padding: 12px 25px; background-color: #28a745; color: white; font-weight: bold; text-decoration: none; border-radius: 5px; display: inline-block; transition: 0.3s; }
+        .btn-download:hover { background-color: #218838; }
     </style>
 </head>
 <body>
 
-<nav class="navbar">
-    <a href="/" class="logo">STREAMPULSE</a>
-</nav>
-
 <div class="container">
-    <div class="movie-details">
+    {% if match.category != 'sports' %}
+        <h2 style="color: #fff; margin-bottom: 15px;">{{ match.title }}</h2>
+        
+        <div class="player-frame">
+            <iframe src="{{ match.server2_url }}" width="100%" height="520px" frameborder="0" scrolling="NO" allowfullscreen="true" style="border-radius: 8px;"></iframe>
+        </div>
+
+        <div style="margin: 25px 0;">
+            <a href="{{ match.download_url }}" target="_blank" class="btn-download">📥 Download in HD / 1080p</a>
+        </div>
+
+        <div class="related-section" style="margin-top: 40px; border-top: 1px solid #222; padding-top: 25px;">
+            <h3 style="color: #fff; font-size: 20px;">🎬 RELATED CONTENT / RECOMMENDED SHOWS</h3>
+            <div class="related-grid">
+                {% for item in related_movies %}
+                    <div class="related-card">
+                        <a href="/watch-content/movie/{{ item.id }}/" style="text-decoration: none;">
+                            <img src="{{ item.poster_url|default:'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=500' }}" alt="{{ item.title }}">
+                            <h4>{{ item.title }}</h4>
+                        </a>
+                    </div>
+                {% empty %}
+                    <p style="color: #888;">No related content found.</p>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <!-- SPORTS LAYOUT -->
         <h2 style="color: #fff;">{{ match.title }}</h2>
-    </div>
-
-    <div class="player-wrapper">
-        <iframe src="{{ match.server2_url }}" width="100%" height="500px" frameborder="0" allowfullscreen="true" scrolling="NO"></iframe>
-    </div>
-
-    <div class="download-section">
-        <a href="{{ match.download_url }}" class="btn btn-success" target="_blank">📥 Download Movie</a>
-    </div>
+        <div class="player-frame">
+            <iframe src="{{ match.live_link }}" width="100%" height="520px" frameborder="0" scrolling="NO" allowfullscreen="true" style="border-radius: 8px;"></iframe>
+        </div>
+        <div style="margin-top: 20px; background: #1a1a1a; padding: 20px; border-radius: 8px;">
+            <h3>Match Information</h3>
+            <p><strong>Tournament:</strong> {{ match.tournament }}</p>
+            <p><strong>Venue:</strong> {{ match.venue }}</p>
+            <p><strong>Status:</strong> {{ match.match_status_text }}</p>
+            <p><strong>Toss:</strong> {{ match.description }}</p>
+        </div>
+        <div class="related-section" style="margin-top: 40px;">
+            <h3 style="color: #fff;">🏏 MORE LIVE SPORTS</h3>
+            <div class="related-grid">
+                {% for item in related_movies %}
+                    <div class="related-card">
+                        <a href="/watch-content/movie/{{ item.id }}/" style="text-decoration: none;">
+                            <img src="{{ item.poster_url|default:'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=500' }}" alt="{{ item.title }}">
+                            <h4>{{ item.title }}</h4>
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
 </div>
 
 </body>

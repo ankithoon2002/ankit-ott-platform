@@ -5,16 +5,11 @@ class Match(models.Model):
     download_url = models.URLField(max_length=500, blank=True, null=True)
     
     CATEGORY_CHOICES = [
-        ('LIVE_SPORTS', 'Live Sports'),
+        ('sports', 'Sports'),
         ('movie', 'Movies'),
-        ('anime', 'Anime'),
-        ('kids', 'Kids/Cartoons'),
         ('web_series', 'Web Series'),
-        ('TRENDING_MOVIES', 'Trending Movies (Legacy)'),
-        ('BHOJPURI_HITS', 'Bhojpuri Hits (Legacy)'),
-        ('SOUTH_HINDI', 'South Indian Hindi (Legacy)'),
-        ('TOP_WEB_SERIES', 'Top Web Series (Legacy)'),
-        ('OTHERS', 'Others'),
+        ('hindi_series', 'Hindi Series'),
+        ('hot_series', 'Hot Series'),
     ]
     STREAM_TYPE_CHOICES = [
         ('iframe', 'Iframe Link'),
