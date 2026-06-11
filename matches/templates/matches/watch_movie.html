@@ -1,137 +1,140 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ match.title }} - StreamPulse{% endblock %}
+{% block title %}Watching: {{ match.title }} - StreamPulse{% endblock %}
 
 {% block content %}
-<div class="container-fluid max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-{% if match.category != 'sports' %}
-   <div class="movie-player-wrapper" style="width:100%; max-width:1100px; margin:0 auto;">
-       <h2 class="text-3xl font-black mb-6 text-white">{{ match.title }}</h2>
-       
-<div class="player-container-main" style="background:#0f172a; padding:15px; border-radius:12px; border: 1px solid #1e293b;">
-    <div class="movieplay" style="background:#000; padding:10px; border-radius:8px;">
-        {% if match.server2_url %}
-            <iframe id="active-player" src="{{ match.server2_url }}" width="100%" height="520px" frameborder="0" scrolling="NO" allowfullscreen="true"></iframe>
-        {% else %}
-            {% if match.category == 'movie' or category == 'movie' %}
-                <iframe id="active-player" src="https://vidsrc.to/embed/movie/{{ match.tmdb_id }}" width="100%" height="520px" frameborder="0" scrolling="NO" allowfullscreen="true"></iframe>
+<div class="premium-player-layout" style="background:#0f172a; padding:20px; border-radius:14px; border: 1px solid #1e293b; max-width:1000px; margin: 40px auto;">
+    
+    <div class="screen-frame-box" style="background:#000; padding:8px; border-radius:10px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.7);">
+        <iframe id="stream-pulse-monitor" 
+                src="https://vidlink.pro/embed/{{ match.category|default:'movie' }}/{{ match.tmdb_id }}" 
+                width="100%" 
+                height="530px" 
+                frameborder="0" 
+                scrolling="NO" 
+                allowfullscreen="true"
+                allow="autoplay; encrypted-media">
+        </iframe>
+    </div>
+
+    <div class="control-dashboard-servers" style="margin-top:20px;">
+        <p style="color:#94a3b8; font-size:13px; font-weight:bold; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; text-align:center;">
+            <i class="fa fa-plug"></i> Select High-Speed Streaming Source:
+        </p>
+        
+        <div class="server-tabs-flex-grid" style="display:flex; gap:12px; justify-content: center; flex-wrap: wrap;">
+            
+            <button type="button" 
+                    onclick="switchStreamingEngine('https://vidlink.pro/embed/{% if match.category == 'movie' %}movie{% else %}tv{% endif %}/{{ match.tmdb_id }}', this)" 
+                    style="background:#10b981; color:#fff; padding:10px 18px; border-radius:6px; font-weight:bold; font-size:12.5px; border:none; cursor:pointer; display:flex; align-items:center; gap:6px; transition: 0.2s; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.3);"
+                    class="srv-btn active-server">
+                🚀 Server 1 (VidLink Pro)
+            </button>
+
+            {% if match.imdb_id %}
+                <button type="button" 
+                        onclick="switchStreamingEngine('https://gemma416okl.com/play/{{ match.imdb_id }}', this)" 
+                        style="background:#6366f1; color:#fff; padding:10px 18px; border-radius:6px; font-weight:bold; font-size:12.5px; border:none; cursor:pointer; display:flex; align-items:center; gap:6px; transition: 0.2s;"
+                        class="srv-btn">
+                    💎 Server 2 (Gemma VIP)
+                </button>
+            {% elif match.server2_url %}
+                <button type="button" 
+                        onclick="switchStreamingEngine('{{ match.server2_url }}', this)" 
+                        style="background:#6366f1; color:#fff; padding:10px 18px; border-radius:6px; font-weight:bold; font-size:12.5px; border:none; cursor:pointer; display:flex; align-items:center; gap:6px; transition: 0.2s;"
+                        class="srv-btn">
+                    ⚡ Server 2 (Speedostream)
+                </button>
             {% else %}
-                <iframe id="active-player" src="https://vidsrc.to/embed/tv/{{ match.tmdb_id }}/1/1" width="100%" height="520px" frameborder="0" scrolling="NO" allowfullscreen="true"></iframe>
+                <button type="button" 
+                        onclick="switchStreamingEngine('https://vidsrc.to/embed/movie/{{ match.tmdb_id }}', this)" 
+                        style="background:#6366f1; color:#fff; padding:10px 18px; border-radius:6px; font-weight:bold; font-size:12.5px; border:none; cursor:pointer; display:flex; align-items:center; gap:6px; transition: 0.2s;"
+                        class="srv-btn">
+                    🔄 Server 2 (Vidsrc Backup)
+                </button>
             {% endif %}
-        {% endif %}
-    </div>
 
-    <div class="server-tabs-grid" style="margin-top:15px; display:flex; gap:10px; justify-content: center;">
-        {% if match.server2_url %}
-            <button onclick="document.getElementById('active-player').src='{{ match.server2_url }}'" style="background:#10b981; color:#fff; padding:8px 16px; border-radius:6px; font-weight:bold; font-size:12px; border:none; cursor:pointer;">⚡ Premium Server</button>
-        {% endif %}
-        {% if match.category == 'movie' or category == 'movie' %}
-            <button onclick="document.getElementById('active-player').src='https://vidsrc.to/embed/movie/{{ match.tmdb_id }}'" style="background:#ef4444; color:#fff; padding:8px 16px; border-radius:6px; font-weight:bold; font-size:12px; border:none; cursor:pointer;">🌐 Global Auto-Stream</button>
-        {% endif %}
+            <button type="button" 
+                    onclick="switchStreamingEngine('https://vidsrc.cc/v2/embed/{% if match.category == 'movie' %}movie/{{ match.tmdb_id }}{% else %}tv/{{ match.tmdb_id }}/1/1{% endif %}', this)" 
+                    style="background:#ef4444; color:#fff; padding:10px 18px; border-radius:6px; font-weight:bold; font-size:12.5px; border:none; cursor:pointer; display:flex; align-items:center; gap:6px; transition: 0.2s;"
+                    class="srv-btn">
+                🔥 Server 3 (Vega Multi-X)
+            </button>
+
+        </div>
     </div>
 </div>
 
-       <div class="download-matrix-box mt-12 pt-10 border-t border-slate-800">
-           <h3 class="text-2xl font-black text-cyan-400 text-center mb-8 uppercase tracking-widest">📥 MULTI-QUALITY HIGH SPEED DOWNLOAD SERVERS</h3>
-           
-           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-               <div class="text-center p-6 bg-slate-900/50 rounded-2xl border border-slate-800 hover:border-blue-500 transition-all group">
-                   <h4 class="text-red-500 font-bold mb-4">480p Standard Quality</h4>
-                   <a href="{{ match.download_480p }}" target="_blank" class="block">
-                       <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold shadow-lg shadow-blue-900/20 group-hover:scale-105 transition-transform">⚡ Download 480p</button>
-                   </a>
-               </div>
-               
-               <div class="text-center p-6 bg-slate-900/50 rounded-2xl border border-slate-800 hover:border-blue-500 transition-all group">
-                   <h4 class="text-red-500 font-bold mb-4">720p HD Quality</h4>
-                   <a href="{{ match.download_720p }}" target="_blank" class="block">
-                       <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold shadow-lg shadow-blue-900/20 group-hover:scale-105 transition-transform">⚡ Download 720p</button>
-                   </a>
-               </div>
+<div class="max-w-[1000px] mx-auto px-4 mt-8">
+    <h1 class="text-3xl font-black text-white mb-4">{{ match.title }}</h1>
+    <p class="text-slate-400 leading-relaxed">{{ match.description }}</p>
 
-               <div class="text-center p-6 bg-slate-900/50 rounded-2xl border border-slate-800 hover:border-blue-500 transition-all group">
-                   <h4 class="text-red-500 font-bold mb-4">1080p Full HD Premium</h4>
-                   <a href="{{ match.download_1080p }}" target="_blank" class="block">
-                       <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold shadow-lg shadow-blue-900/20 group-hover:scale-105 transition-transform">⚡ Download 1080p</button>
-                   </a>
-               </div>
-           </div>
-       </div>
-
-       <div class="movies-list-wrap mlw-related mt-16 pt-10 border-t border-slate-800">
-           <div class="flex items-center mb-8">
-                <span class="w-1.5 h-8 bg-red-600 mr-4 rounded-full"></span>
-                <h3 class="text-2xl font-bold text-white">You May Also Like</h3>
-           </div>
-           <div class="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory">
-               {% for item in related_movies %}
-                   <div class="flex-none w-[180px] sm:w-[220px] snap-start">
-                       <a href="/watch-content/{{ item.category }}/{{ item.slug }}/" class="block group">
-                           <div class="relative aspect-[2/3] overflow-hidden rounded-xl mb-3 shadow-lg border border-slate-800 group-hover:border-red-600 transition-all">
-                               <img src="{{ item.poster_url|default:'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=500' }}" 
-                                    class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="{{ item.title }}">
-                               <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-60"></div>
-                           </div>
-                           <h4 class="text-white text-sm font-semibold line-clamp-2 group-hover:text-red-500 transition-colors">{{ item.title }}</h4>
-                       </a>
-                   </div>
-               {% empty %}
-                   <p class="text-slate-500 italic">No recommendations available.</p>
-               {% endfor %}
-           </div>
-       </div>
-   </div>
-{% else %}
-    <!-- SPORTS LAYOUT -->
-    <div class="max-w-6xl mx-auto">
-        <h2 class="text-3xl font-black mb-6 text-white">{{ match.title }}</h2>
-        <div class="bg-black p-2 md:p-4 rounded-2xl shadow-2xl border border-slate-800">
-            <iframe src="{{ match.live_link }}" width="100%" height="520px" frameborder="0" scrolling="NO" allowfullscreen="true" class="rounded-xl"></iframe>
-        </div>
-        <div class="mt-8 bg-slate-900/50 p-8 rounded-2xl border border-slate-800">
-            <h3 class="text-xl font-bold mb-6 flex items-center">
-                <span class="w-1 h-6 bg-red-600 mr-3"></span>
-                Match Information
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-slate-300">
-                <div class="flex justify-between border-b border-slate-800 pb-2">
-                    <span class="font-semibold text-slate-500">Tournament</span>
-                    <span>{{ match.tournament }}</span>
-                </div>
-                <div class="flex justify-between border-b border-slate-800 pb-2">
-                    <span class="font-semibold text-slate-500">Venue</span>
-                    <span>{{ match.venue }}</span>
-                </div>
-                <div class="flex justify-between border-b border-slate-800 pb-2">
-                    <span class="font-semibold text-slate-500">Status</span>
-                    <span class="text-green-500 font-bold">{{ match.match_status_text }}</span>
-                </div>
-                <div class="flex justify-between border-b border-slate-800 pb-2">
-                    <span class="font-semibold text-slate-500">Toss</span>
-                    <span>{{ match.description }}</span>
-                </div>
+    <div class="download-matrix-box mt-12 pt-10 border-t border-slate-800">
+        <h3 class="text-2xl font-black text-cyan-400 text-center mb-8 uppercase tracking-widest">📥 MULTI-QUALITY HIGH SPEED DOWNLOAD SERVERS</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% if match.download_480p %}
+            <div class="text-center p-6 bg-slate-900/50 rounded-2xl border border-slate-800 hover:border-blue-500 transition-all group">
+                <h4 class="text-red-500 font-bold mb-4">480p Quality</h4>
+                <a href="{{ match.download_480p }}" target="_blank" class="block">
+                    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold shadow-lg shadow-blue-900/20 group-hover:scale-105 transition-transform">⚡ Download 480p</button>
+                </a>
             </div>
-        </div>
-        <div class="mt-16 pt-10 border-t border-slate-800">
-            <div class="flex items-center mb-8">
-                <span class="w-1.5 h-8 bg-red-600 mr-4 rounded-full"></span>
-                <h3 class="text-2xl font-bold text-white">🏏 MORE LIVE SPORTS</h3>
+            {% endif %}
+            {% if match.download_720p %}
+            <div class="text-center p-6 bg-slate-900/50 rounded-2xl border border-slate-800 hover:border-blue-500 transition-all group">
+                <h4 class="text-red-500 font-bold mb-4">720p HD Quality</h4>
+                <a href="{{ match.download_720p }}" target="_blank" class="block">
+                    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold shadow-lg shadow-blue-900/20 group-hover:scale-105 transition-transform">⚡ Download 720p</button>
+                </a>
             </div>
-            <div class="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory">
-                {% for item in related_movies %}
-                    <div class="flex-none w-[180px] sm:w-[220px] snap-start">
-                        <a href="/watch-content/{{ item.category }}/{{ item.slug }}/" class="block group">
-                           <div class="relative aspect-[2/3] overflow-hidden rounded-xl mb-3 shadow-lg border border-slate-800 group-hover:border-red-600 transition-all">
-                               <img src="{{ item.poster_url|default:'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=500' }}" 
-                                    class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="{{ item.title }}">
-                           </div>
-                           <h4 class="text-white text-sm font-semibold line-clamp-2 group-hover:text-red-500 transition-colors">{{ item.title }}</h4>
-                        </a>
-                    </div>
-                {% endfor %}
+            {% endif %}
+            {% if match.download_1080p %}
+            <div class="text-center p-6 bg-slate-900/50 rounded-2xl border border-slate-800 hover:border-blue-500 transition-all group">
+                <h4 class="text-red-500 font-bold mb-4">1080p Full HD</h4>
+                <a href="{{ match.download_1080p }}" target="_blank" class="block">
+                    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold shadow-lg shadow-blue-900/20 group-hover:scale-105 transition-transform">⚡ Download 1080p</button>
+                </a>
             </div>
+            {% endif %}
         </div>
     </div>
-{% endif %}
+
+    {% if related_movies %}
+    <div class="movies-list-wrap mlw-related mt-16 pt-10 border-t border-slate-800">
+        <div class="flex items-center mb-8">
+             <span class="w-1.5 h-8 bg-red-600 mr-4 rounded-full"></span>
+             <h3 class="text-2xl font-bold text-white">You May Also Like</h3>
+        </div>
+        <div class="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory">
+            {% for item in related_movies %}
+                <div class="flex-none w-[180px] sm:w-[220px] snap-start">
+                    {% include "matches/includes/item_card.html" with item=item %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 </div>
+
+<script>
+function switchStreamingEngine(targetUrl, selectedButton) {
+    // Inject source directly into iframe target without breaking page DOM memory state
+    const monitor = document.getElementById('stream-pulse-monitor');
+    if(monitor) {
+        monitor.src = targetUrl;
+    }
+    
+    // Normalize button UI highlight rings 
+    document.querySelectorAll('.srv-btn').forEach(btn => {
+        btn.style.transform = 'scale(1)';
+        btn.style.boxShadow = 'none';
+        btn.classList.remove('active-server');
+    });
+    
+    // Animate active state context highlight
+    selectedButton.style.transform = 'scale(1.04)';
+    selectedButton.style.boxShadow = '0 6px 12px -2px rgba(255,255,255,0.15)';
+    selectedButton.classList.add('active-server');
+}
+</script>
 {% endblock %}

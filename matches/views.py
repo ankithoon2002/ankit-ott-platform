@@ -77,13 +77,13 @@ def home(request):
     featured_items = Match.objects.filter(is_featured=True).order_by('-id')[:5]
 
     # 2. Fetch Categorized Rows from Database
-    latest_movies = Match.objects.filter(category='movie').order_by('-id')[:15]
-    web_series_list = Match.objects.filter(category__in=['TOP_WEB_SERIES', 'web_series']).order_by('-id')[:15]
-    anime_universe = Match.objects.filter(category='anime').order_by('-id')[:15]
-    kids_cartoons = Match.objects.filter(category='kids').order_by('-id')[:15]
+    latest_movies = Match.objects.filter(category='movie').only('tmdb_id', 'imdb_id', 'title', 'poster_url', 'category', 'slug', 'description').order_by('-id')[:15]
+    web_series_list = Match.objects.filter(category__in=['TOP_WEB_SERIES', 'web_series']).only('tmdb_id', 'imdb_id', 'title', 'poster_url', 'category', 'slug', 'description').order_by('-id')[:15]
+    anime_universe = Match.objects.filter(category='anime').only('tmdb_id', 'imdb_id', 'title', 'poster_url', 'category', 'slug', 'description').order_by('-id')[:15]
+    kids_cartoons = Match.objects.filter(category='kids').only('tmdb_id', 'imdb_id', 'title', 'poster_url', 'category', 'slug', 'description').order_by('-id')[:15]
 
     # 3. Live sports (Isolated)
-    live_sports = Match.objects.filter(category='LIVE_SPORTS')
+    live_sports = Match.objects.filter(category='LIVE_SPORTS').only('tmdb_id', 'imdb_id', 'title', 'poster_url', 'category', 'slug', 'description', 'team_a_score', 'team_b_score', 'is_live', 'match_date')
 
     # TMDB API Configuration (Legacy/Fallback)
     TMDB_API_KEY = '8265bd1679663a7ea12ac168da84d2e8'
@@ -259,16 +259,23 @@ def fetch_live_cricket_score(match):
 
 def watch_movie(request, category, slug):
     # Support dual fetching (slug text or dynamic database id lookup)
-    if slug.isdigit():
-        # Fallback for live API elements or quick numbers
-        match = Match.objects.filter(id=int(slug)).first() or Match.objects.filter(tmdb_id=int(slug)).first()
-        if not match:
+    from django.db.models import Q
+    
+    match = Match.objects.filter(
+        Q(id=int(slug) if slug.isdigit() else None) | 
+        Q(tmdb_id=int(slug) if slug.isdigit() else None) | 
+        Q(slug=slug)
+    ).first()
+
+    if not match:
+        if slug.isdigit():
             # Create a mock database object on the fly to bypass 404 crashes
             match, created = Match.objects.get_or_create(
                 slug=f"movie-{slug}",
                 defaults={
-                    'title': match.title if 'match' in locals() and match else f"Premium Stream {slug}",
+                    'title': f"Premium Stream {slug}",
                     'category': category.lower(),
+                    'tmdb_id': int(slug),
                     'live_link': "https://gemma416okl.com/play/tt33538438",
                     'server2_url': "https://speedostream1.com/embed-3h497yyomk90.html",
                     'download_480p': "https://speedostream1.com/gehcflnd4mzm.html",
@@ -276,12 +283,11 @@ def watch_movie(request, category, slug):
                     'download_1080p': "https://speedostream1.com/gehcflnd4mzm.html"
                 }
             )
-    else:
-        # Standard production string slug fetch (PrMovies/Hdmovie2 Style)
-        match = get_object_or_404(Match, slug=slug)
+        else:
+            match = get_object_or_404(Match, slug=slug)
 
     # Print debug info to terminal
-    print(f"DEBUG: Rendering watch page for: {match.title} (ID: {match.id}, Category: {match.category})")
+    print(f"DEBUG: Rendering watch page for: {match.title} (ID: {match.id}, TMDB: {match.tmdb_id}, Category: {match.category})")
 
     # Completely separate live cricket variables if category is sports
     if match.category == 'LIVE_SPORTS' or match.category == 'sports':
