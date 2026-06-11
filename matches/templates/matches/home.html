@@ -238,9 +238,6 @@
             <div class="carousel-item {% if forloop.first %}active{% endif %}" data-bs-interval="5000">
                 {% if item.slug %}
                 <a href="/watch-content/{{ item.category }}/{{ item.slug }}/" class="block relative h-[40vh] md:h-[70vh] overflow-hidden rounded-2xl md:rounded-none mx-4 md:mx-0 mt-4 md:mt-0 shadow-2xl">
-                {% else %}
-                <a href="{% url 'watch_match' item.id %}" class="block relative h-[40vh] md:h-[70vh] overflow-hidden rounded-2xl md:rounded-none mx-4 md:mx-0 mt-4 md:mt-0 shadow-2xl">
-                {% endif %}
                     <img src="{% if item.poster_url %}{{ item.poster_url }}{% else %}https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=1920{% endif %}" 
                          class="w-full h-full object-cover" alt="{{ item.title }}">
                     <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
@@ -263,6 +260,31 @@
                         </div>
                     </div>
                 </a>
+                {% else %}
+                <a href="{% url 'watch_match' item.id %}" class="block relative h-[40vh] md:h-[70vh] overflow-hidden rounded-2xl md:rounded-none mx-4 md:mx-0 mt-4 md:mt-0 shadow-2xl">
+                    <img src="{% if item.poster_url %}{{ item.poster_url }}{% else %}https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=1920{% endif %}" 
+                         class="w-full h-full object-cover" alt="{{ item.title }}">
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
+                    
+                    <div class="absolute bottom-10 left-10 md:left-20 z-10 max-w-2xl">
+                        <div class="inline-block bg-red-600 text-white text-[10px] font-bold px-3 py-1 rounded-full mb-4 animate-pulse uppercase">Featured</div>
+                        <h1 class="text-3xl md:text-6xl font-black mb-4 text-white drop-shadow-lg">{{ item.title }}</h1>
+                        <p class="text-sm md:text-lg text-slate-300 mb-6 line-clamp-2 md:line-clamp-none">{{ item.description }}</p>
+                        <div class="flex items-center space-x-4">
+                            <span class="bg-white text-black px-6 md:px-8 py-2 md:py-3 rounded-md font-bold text-sm md:text-lg hover:bg-slate-200 transition">Watch Now</span>
+                        </div>
+                    </div>
+
+                    <!-- Developer Branding Badge -->
+                    <div class="absolute top-10 left-10 z-20 hidden md:block">
+                        <div class="bg-black/60 backdrop-blur-md border border-white/20 px-4 py-2 rounded-xl">
+                            <p class="text-[10px] uppercase tracking-[0.2em] text-red-500 font-bold mb-0.5">Premium Experience</p>
+                            <p class="text-white text-sm font-black italic">StreamPulse OTT</p>
+                            <p class="text-white/70 text-[9px] mt-1">By Ankit Maurya</p>
+                        </div>
+                    </div>
+                </a>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
@@ -362,43 +384,6 @@
                 </div>
             </div>
 
-            <!-- Anime Universe Row -->
-            <div id="anime-universe" class="mb-16">
-                <h2 class="text-2xl font-bold mb-6 flex items-center">
-                    <span class="w-1.5 h-8 bg-yellow-500 mr-4 rounded-full"></span>
-                    Anime Universe 🔥
-                </h2>
-                <div class="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory mobile-grid">
-                    {% for anime in anime_universe %}
-                        {% if anime.category == 'anime' %}
-                        <div class="flex-none w-[200px] sm:w-[250px] snap-start">
-                            {% include "matches/includes/item_card.html" with item=anime %}
-                        </div>
-                        {% endif %}
-                    {% empty %}
-                        <p class="text-slate-500 italic">Exploring the multiverse...</p>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- Kids & Cartoons Row -->
-            <div id="kids-cartoons" class="mb-16">
-                <h2 class="text-2xl font-bold mb-6 flex items-center">
-                    <span class="w-1.5 h-8 bg-green-500 mr-4 rounded-full"></span>
-                    Kids Corner 👶
-                </h2>
-                <div class="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory mobile-grid">
-                    {% for kid in kids_cartoons %}
-                        {% if kid.category == 'kids' %}
-                        <div class="flex-none w-[200px] sm:w-[250px] snap-start">
-                            {% include "matches/includes/item_card.html" with item=kid %}
-                        </div>
-                        {% endif %}
-                    {% empty %}
-                        <p class="text-slate-500 italic">Magic is coming soon!</p>
-                    {% endfor %}
-                </div>
-            </div>
 
             <!-- My Watchlist Row -->
             {% if watchlist_items %}
