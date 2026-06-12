@@ -95,16 +95,16 @@
         </div>
     </div>
 
-    {% if related_movies %}
-    <div class="movies-list-wrap mlw-related mt-16 pt-10 border-t border-slate-800">
+    {% if related_contents %}
+    <div class="you-may-like-grid mt-16 pt-10 border-t border-slate-800">
         <div class="flex items-center mb-8">
-             <span class="w-1.5 h-8 bg-red-600 mr-4 rounded-full"></span>
-             <h3 class="text-2xl font-bold text-white">You May Also Like</h3>
+             <span class="w-1.5 h-8 bg-cyan-500 mr-4 rounded-full"></span>
+             <h3 class="text-2xl font-bold text-white uppercase tracking-wider">🔥 YOU MAY ALSO LIKE / RELATED SHOWS</h3>
         </div>
-        <div class="flex space-x-4 overflow-x-auto pb-4 hide-scrollbar snap-x snap-mandatory">
-            {% for item in related_movies %}
-                <div class="flex-none w-[180px] sm:w-[220px] snap-start">
-                    {% include "matches/includes/item_card.html" with item=item %}
+        <div class="flex flex-wrap gap-6 justify-center sm:justify-start">
+            {% for related in related_contents %}
+                <div class="flex-none w-[180px] sm:w-[220px]">
+                    {% include "matches/includes/item_card.html" with item=related %}
                 </div>
             {% endfor %}
         </div>

@@ -320,18 +320,24 @@ def watch_movie(request, category, slug):
     print(f"DEBUG PIPELINE LIVE: Loading -> {match.title}")
 
     # Sports Routing Section
-    if getattr(match, 'category', '') in ['LIVE_SPORTS', 'sports']:
-        context = {'match': match, 'is_ott': False}
+    if getattr(match, 'category', '') in ['LIVE_SPORTS', 'sports', 'live_match']:
+        related_contents = Match.objects.filter(category__in=['LIVE_SPORTS', 'sports', 'live_match']).exclude(id=getattr(match, 'id', None))[:12]
+        context = {
+            'match': match, 
+            'is_ott': False,
+            'related_contents': related_contents
+        }
         score_data = fetch_live_cricket_score(match)
         context.update(score_data)
-        context['related_movies'] = Match.objects.filter(category='sports').exclude(id=getattr(match, 'id', None))[:12]
         return render(request, 'matches/watch_movie.html', context)
     
     # OTT Entertainment Context & Related Grid Logic
     current_category = getattr(match, 'category', 'movie')
+    related_contents = Match.objects.filter(category=current_category).exclude(id=getattr(match, 'id', None))[:12]
+    
     context = {
         'match': match,
-        'related_movies': Match.objects.filter(category=current_category)[:12],
+        'related_contents': related_contents,
         'is_ott': True,
         'category': current_category
     }

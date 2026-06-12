@@ -14,6 +14,7 @@ class Match(models.Model):
         ('web_series', 'Web Series'),
         ('hindi_series', 'Hindi Series'),
         ('hot_series', 'Hot Series'),
+        ('live_match', 'Live Matches'),
     ]
     STREAM_TYPE_CHOICES = [
         ('iframe', 'Iframe Link'),
