@@ -3,46 +3,41 @@
 {% block title %}Watching: {{ match.title }} - StreamPulse{% endblock %}
 
 {% block content %}
-<div class="premium-player-layout" style="background:#0f172a; padding:20px; border-radius:14px; border: 1px solid #1e293b; max-width:1000px; margin: 40px auto;">
+<div class="player-framework-main" style="background:#0f172a; padding:20px; border-radius:14px; border: 1px solid #1e293b;">
     
-    <div class="screen-frame-box" style="background:#000; padding:8px; border-radius:10px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.7);">
-        <iframe id="stream-pulse-monitor" 
-                src="{% if match.imdb_id %}https://gemma416okl.com/play/{{ match.imdb_id }}{% else %}https://vidsrc.to/embed/movie/{{ match.tmdb_id }}{% endif %}" 
+    <div class="video-screen-holder" style="background:#000; padding:6px; border-radius:10px;">
+        <iframe id="main-player-pulse" 
+                src="https://gemma416okl.com/play/{% if match.imdb_id %}{{ match.imdb_id }}{% else %}tt13847564{% endif %}" 
                 width="100%" 
-                height="530px" 
+                height="510px" 
                 frameborder="0" 
                 scrolling="NO" 
                 allowfullscreen="true"
-                referrerpolicy="no-referrer-when-downgrade"
                 allow="autoplay; encrypted-media">
         </iframe>
     </div>
 
-    <div class="control-dashboard-servers" style="margin-top:20px;">
-        <p style="color:#94a3b8; font-size:13px; font-weight:bold; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; text-align:center;">
-            <i class="fa fa-plug"></i> Select High-Speed Streaming Source:
-        </p>
-        
-        <div class="server-tabs-flex-grid" style="display:flex; gap:12px; justify-content: center; flex-wrap: wrap;">
+    <div class="server-control-panel" style="margin-top:20px; text-align:center;">
+        <div class="btn-tabs-flex-row" style="display:flex; gap:12px; justify-content: center; flex-wrap: wrap;">
             
             <button type="button" 
-                    onclick="switchStreamingEngine('{% if match.imdb_id %}https://gemma416okl.com/play/{{ match.imdb_id }}{% else %}https://vidsrc.to/embed/movie/{{ match.tmdb_id }}{% endif %}', this, 'no-referrer-when-downgrade')" 
-                    style="background:#10b981; color:#fff; padding:10px 18px; border-radius:6px; font-weight:bold; font-size:12.5px; border:none; cursor:pointer; display:flex; align-items:center; gap:6px; transition: 0.2s; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.3);"
-                    class="srv-btn active-server">
+                    onclick="triggerEngineSwitch('https://gemma416okl.com/play/{% if match.imdb_id %}{{ match.imdb_id }}{% else %}tt13847564{% endif %}', 'default', this)" 
+                    style="background:#10b981; color:#fff; padding:10px 20px; border-radius:6px; font-weight:bold; font-size:13px; border:none; cursor:pointer;"
+                    class="srv-btn-toggle active-glow">
                 ⚡ Server 1
             </button>
 
             <button type="button" 
-                    onclick="switchStreamingEngine('{{ match.server2_url }}', this, 'no-referrer')" 
-                    style="background:#6366f1; color:#fff; padding:10px 18px; border-radius:6px; font-weight:bold; font-size:12.5px; border:none; cursor:pointer; display:flex; align-items:center; gap:6px; transition: 0.2s;"
-                    class="srv-btn">
+                    onclick="triggerEngineSwitch('{% if match.server2_url %}{{ match.server2_url }}{% else %}https://vidlink.pro/embed/movie/{{ match.tmdb_id }}{% endif %}', 'bypass', this)" 
+                    style="background:#6366f1; color:#fff; padding:10px 20px; border-radius:6px; font-weight:bold; font-size:13px; border:none; cursor:pointer;"
+                    class="srv-btn-toggle">
                 🚀 Server 2
             </button>
 
             <button type="button" 
-                    onclick="switchStreamingEngine('https://vidsrc.cc/v2/embed/{{ match.category|default:'movie' }}/{{ match.tmdb_id }}', this, 'no-referrer-when-downgrade')" 
-                    style="background:#ef4444; color:#fff; padding:10px 18px; border-radius:6px; font-weight:bold; font-size:12.5px; border:none; cursor:pointer; display:flex; align-items:center; gap:6px; transition: 0.2s;"
-                    class="srv-btn">
+                    onclick="triggerEngineSwitch('https://vidsrc.me/embed/movie/{{ match.tmdb_id }}', 'default', this)" 
+                    style="background:#ef4444; color:#fff; padding:10px 20px; border-radius:6px; font-weight:bold; font-size:13px; border:none; cursor:pointer;"
+                    class="srv-btn-toggle">
                 🔥 Server 3
             </button>
 
@@ -102,25 +97,27 @@
 </div>
 
 <script>
-function switchStreamingEngine(targetUrl, selectedButton, policy = 'no-referrer-when-downgrade') {
-    // Inject source directly into iframe target without breaking page DOM memory state
-    const monitor = document.getElementById('stream-pulse-monitor');
-    if(monitor) {
-        monitor.referrerPolicy = policy;
-        monitor.src = targetUrl;
+function triggerEngineSwitch(targetUrl, policyMode, element) {
+    const playerFrame = document.getElementById('main-player-pulse');
+    if (!playerFrame) return;
+
+    // Reset and apply Referrer Policy dynamically based on target requirements
+    if (policyMode === 'bypass') {
+        playerFrame.setAttribute('referrerpolicy', 'no-referrer');
+    } else {
+        playerFrame.removeAttribute('referrerpolicy');
     }
-    
-    // Normalize button UI highlight rings 
-    document.querySelectorAll('.srv-btn').forEach(btn => {
+
+    // Direct hot swap of source link
+    playerFrame.src = targetUrl;
+
+    // UI Feedback styling
+    document.querySelectorAll('.srv-btn-toggle').forEach(btn => {
+        btn.style.opacity = '0.7';
         btn.style.transform = 'scale(1)';
-        btn.style.boxShadow = 'none';
-        btn.classList.remove('active-server');
     });
-    
-    // Animate active state context highlight
-    selectedButton.style.transform = 'scale(1.04)';
-    selectedButton.style.boxShadow = '0 6px 12px -2px rgba(255,255,255,0.15)';
-    selectedButton.classList.add('active-server');
+    element.style.opacity = '1';
+    element.style.transform = 'scale(1.05)';
 }
 </script>
 {% endblock %}
