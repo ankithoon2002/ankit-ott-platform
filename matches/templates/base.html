@@ -92,87 +92,31 @@
 
             <!-- Navigation Links for Categories -->
             <div class="hidden lg:flex items-center ml-8">
-                <ul class="navbar-nav space-x-4">
-                    <li class="nav-item"><a href="/search/?q=Dual+Audio" class="nav-link text-xs font-black uppercase">DUAL AUDIO</a></li>
-                    <li class="nav-item"><a href="/search/?q=Bollywood" class="nav-link text-xs font-black uppercase">BOLLYWOOD</a></li>
-                    <li class="nav-item"><a href="/search/?q=Hollywood" class="nav-link text-xs font-black uppercase">HOLLYWOOD</a></li>
-                    <li class="nav-item"><a href="/search/?q=English+Series" class="nav-link text-xs font-black uppercase">ENGLISH SERIES</a></li>
-                    
-                    <!-- Hindi Series Mega Dropdown -->
-                    <li class="nav-item mega-dropdown">
-                        <a href="/search/?q=Hindi+Series" class="nav-link text-xs font-black uppercase">HINDI SERIES</a>
-                        <div class="mega-menu">
-                            <div class="container-fluid max-w-7xl mx-auto px-8">
-                                <div class="row">
-                                    <div class="col-4">
-                                        <h6>Premium Networks</h6>
-                                        <ul>
-                                            <li><a href="/search/?q=Netflix">Netflix</a></li>
-                                            <li><a href="/search/?q=Zee5">Zee5</a></li>
-                                            <li><a href="/search/?q=Hotstar">Hotstar</a></li>
-                                        </ul>
-                                    </div>
-                                    <div class="col-4">
-                                        <h6>TV Channels</h6>
-                                        <ul>
-                                            <li><a href="/search/?q=Amazon">Amazon</a></li>
-                                            <li><a href="/search/?q=Voot">Voot</a></li>
-                                            <li><a href="/search/?q=Viu">Viu</a></li>
-                                        </ul>
-                                    </div>
-                                    <div class="col-4">
-                                        <h6>Digital Apps</h6>
-                                        <ul>
-                                            <li><a href="/search/?q=Altbalaji">Altbalaji</a></li>
-                                            <li><a href="/search/?q=Mx+Player">Mx Player</a></li>
-                                            <li><a href="/search/?q=Sony+Liv">Sony Liv</a></li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <ul class="navbar-nav space-x-6">
+                    <!-- MOVIES Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-sm font-black uppercase" href="#" id="moviesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            MOVIES
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark border-slate-700 bg-slate-900 shadow-xl" aria-labelledby="moviesDropdown">
+                            <li><a class="dropdown-item text-xs font-bold uppercase py-2" href="/search/?q=Bollywood">Bollywood</a></li>
+                            <li><a class="dropdown-item text-xs font-bold uppercase py-2" href="/search/?q=Hollywood">Hollywood</a></li>
+                            <li><a class="dropdown-item text-xs font-bold uppercase py-2" href="/search/?q=Dual+Audio">Dual Audio</a></li>
+                            <li><hr class="dropdown-divider border-slate-700"></li>
+                            <li><a class="dropdown-item text-xs font-bold uppercase py-2" href="/search/?q=Trending">Trending Now</a></li>
+                        </ul>
                     </li>
 
-                    <li class="nav-item"><a href="/search/?q=Genre" class="nav-link text-xs font-black uppercase">GENRE</a></li>
-                    <li class="nav-item"><a href="/search/?q=ExtraMovies" class="nav-link text-xs font-black uppercase">EXTRAMOVIES</a></li>
-                    <li class="nav-item"><a href="/search/?q=Erotic" class="nav-link text-xs font-black uppercase">EROTIC</a></li>
-
-                    <!-- Hot Series Mega Dropdown -->
-                    <li class="nav-item mega-dropdown">
-                        <a href="/search/?q=Hot+Series" class="nav-link text-xs font-black uppercase">HOT SERIES</a>
-                        <div class="mega-menu">
-                            <div class="container-fluid max-w-7xl mx-auto px-8">
-                                <div class="row">
-                                    <div class="col-4">
-                                        <h6>Trending Tags</h6>
-                                        <ul>
-                                            <li><a href="/search/?q=Ullu">Ullu Originals</a></li>
-                                            <li><a href="/search/?q=Nuefliks">Nuefliks</a></li>
-                                            <li><a href="/search/?q=MoodX">MoodX</a></li>
-                                            <li><a href="/search/?q=Besharams">Besharams</a></li>
-                                        </ul>
-                                    </div>
-                                    <div class="col-4">
-                                        <h6>Latest Added</h6>
-                                        <ul>
-                                            <li><a href="/search/?q=Feneomovies">Feneomovies</a></li>
-                                            <li><a href="/search/?q=Kooku">Kooku</a></li>
-                                            <li><a href="/search/?q=Cinemadosti">Cinemadosti</a></li>
-                                            <li><a href="/search/?q=Rabbit">Rabbit</a></li>
-                                        </ul>
-                                    </div>
-                                    <div class="col-4">
-                                        <h6>Most Watched</h6>
-                                        <ul>
-                                            <li><a href="/search/?q=PrimePlay">PrimePlay</a></li>
-                                            <li><a href="/search/?q=Gupchup">Gupchup</a></li>
-                                            <li><a href="/search/?q=HotShots">HotShots</a></li>
-                                            <li><a href="/search/?q=Bolo">Bolo</a></li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <!-- MATCHES Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-sm font-black uppercase" href="#" id="matchesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            MATCHES
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark border-slate-700 bg-slate-900 shadow-xl" aria-labelledby="matchesDropdown">
+                            <li><a class="dropdown-item text-xs font-bold uppercase py-2" href="/search/?q=Cricket">Cricket</a></li>
+                            <li><a class="dropdown-item text-xs font-bold uppercase py-2" href="/search/?q=Football">Football</a></li>
+                            <li><a class="dropdown-item text-xs font-bold uppercase py-2" href="/search/?q=Live+Sports">Live Events</a></li>
+                        </ul>
                     </li>
                 </ul>
             </div>

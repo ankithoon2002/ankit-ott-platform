@@ -7,7 +7,7 @@
     
     <div class="screen-frame-box" style="background:#000; padding:8px; border-radius:10px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.7);">
         <iframe id="stream-pulse-monitor" 
-                src="https://vidlink.pro/embed/{{ match.category|default:'movie' }}/{{ match.tmdb_id }}" 
+                src="{% if match.imdb_id %}https://gemma416okl.com/play/{{ match.imdb_id }}{% else %}https://vidsrc.to/embed/movie/{{ match.tmdb_id }}{% endif %}" 
                 width="100%" 
                 height="530px" 
                 frameborder="0" 
@@ -25,40 +25,24 @@
         <div class="server-tabs-flex-grid" style="display:flex; gap:12px; justify-content: center; flex-wrap: wrap;">
             
             <button type="button" 
-                    onclick="switchStreamingEngine('https://vidlink.pro/embed/{% if match.category == 'movie' %}movie{% else %}tv{% endif %}/{{ match.tmdb_id }}', this)" 
+                    onclick="switchStreamingEngine('{% if match.imdb_id %}https://gemma416okl.com/play/{{ match.imdb_id }}{% else %}https://vidsrc.to/embed/movie/{{ match.tmdb_id }}{% endif %}', this)" 
                     style="background:#10b981; color:#fff; padding:10px 18px; border-radius:6px; font-weight:bold; font-size:12.5px; border:none; cursor:pointer; display:flex; align-items:center; gap:6px; transition: 0.2s; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.3);"
                     class="srv-btn active-server">
-                🚀 Server 1 (VidLink Pro)
+                ⚡ Server 1
             </button>
 
-            {% if match.imdb_id %}
-                <button type="button" 
-                        onclick="switchStreamingEngine('https://gemma416okl.com/play/{{ match.imdb_id }}', this)" 
-                        style="background:#6366f1; color:#fff; padding:10px 18px; border-radius:6px; font-weight:bold; font-size:12.5px; border:none; cursor:pointer; display:flex; align-items:center; gap:6px; transition: 0.2s;"
-                        class="srv-btn">
-                    💎 Server 2 (Gemma VIP)
-                </button>
-            {% elif match.server2_url %}
-                <button type="button" 
-                        onclick="switchStreamingEngine('{{ match.server2_url }}', this)" 
-                        style="background:#6366f1; color:#fff; padding:10px 18px; border-radius:6px; font-weight:bold; font-size:12.5px; border:none; cursor:pointer; display:flex; align-items:center; gap:6px; transition: 0.2s;"
-                        class="srv-btn">
-                    ⚡ Server 2 (Speedostream)
-                </button>
-            {% else %}
-                <button type="button" 
-                        onclick="switchStreamingEngine('https://vidsrc.to/embed/movie/{{ match.tmdb_id }}', this)" 
-                        style="background:#6366f1; color:#fff; padding:10px 18px; border-radius:6px; font-weight:bold; font-size:12.5px; border:none; cursor:pointer; display:flex; align-items:center; gap:6px; transition: 0.2s;"
-                        class="srv-btn">
-                    🔄 Server 2 (Vidsrc Backup)
-                </button>
-            {% endif %}
+            <button type="button" 
+                    onclick="switchStreamingEngine('{{ match.server2_url }}', this)" 
+                    style="background:#6366f1; color:#fff; padding:10px 18px; border-radius:6px; font-weight:bold; font-size:12.5px; border:none; cursor:pointer; display:flex; align-items:center; gap:6px; transition: 0.2s;"
+                    class="srv-btn">
+                🚀 Server 2
+            </button>
 
             <button type="button" 
-                    onclick="switchStreamingEngine('https://vidsrc.cc/v2/embed/{% if match.category == 'movie' %}movie/{{ match.tmdb_id }}{% else %}tv/{{ match.tmdb_id }}/1/1{% endif %}', this)" 
+                    onclick="switchStreamingEngine('https://vidsrc.cc/v2/embed/{{ match.category|default:'movie' }}/{{ match.tmdb_id }}', this)" 
                     style="background:#ef4444; color:#fff; padding:10px 18px; border-radius:6px; font-weight:bold; font-size:12.5px; border:none; cursor:pointer; display:flex; align-items:center; gap:6px; transition: 0.2s;"
                     class="srv-btn">
-                🔥 Server 3 (Vega Multi-X)
+                🔥 Server 3
             </button>
 
         </div>
