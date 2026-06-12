@@ -261,6 +261,8 @@ def watch_movie(request, category, slug):
     from django.db.models import Q
     import requests
 
+    platform = request.GET.get('platform', '').lower()
+
     # 1. First lookup inside the database
     match = Match.objects.filter(
         Q(id=int(slug) if slug.isdigit() else None) | 
@@ -268,7 +270,26 @@ def watch_movie(request, category, slug):
         Q(slug=slug)
     ).first()
 
-    # 2. If NOT in DB and slug is a digit, handle dynamic setup
+    # 2. Automated Category Matching Engine for hot_series brands
+    if not match and category == 'hot_series' and platform:
+        # Dynamic lookup for hot_series brands (Ullu, MoodX, etc.)
+        # We create a mock object for the specific platform
+        match = type('MockHotSeries', (), {
+            'id': 0,
+            'tmdb_id': slug,  # Use slug as id if numeric, or title tag
+            'imdb_id': '',
+            'title': f"{platform.upper()} Special: {slug.replace('-', ' ').title()}",
+            'description': f"Stream the latest premium content from {platform.upper()} exclusively on our high-speed servers.",
+            'category': 'hot_series',
+            'poster_url': None,
+            'slug': slug,
+            'server2_url': "",
+            'download_480p': "",
+            'download_720p': "",
+            'download_1080p': ""
+        })()
+
+    # 3. If NOT in DB and slug is a digit, handle dynamic TMDB setup
     if not match and slug.isdigit():
         TMDB_API_KEY = '8265bd1679663a7ea12ac168da84d2e8'
         tmdb_id = int(slug)
