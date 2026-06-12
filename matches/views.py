@@ -261,14 +261,14 @@ def watch_movie(request, category, slug):
     from django.db.models import Q
     import requests
 
-    # 1. Lookup in the local database first
+    # 1. First lookup inside the database
     match = Match.objects.filter(
         Q(id=int(slug) if slug.isdigit() else None) | 
         Q(tmdb_id=int(slug) if slug.isdigit() else None) | 
         Q(slug=slug)
     ).first()
 
-    # 2. If NOT in DB and slug is a digit, attempt live fetch, else create a guaranteed mock
+    # 2. If NOT in DB and slug is a digit, handle dynamic setup
     if not match and slug.isdigit():
         TMDB_API_KEY = '8265bd1679663a7ea12ac168da84d2e8'
         tmdb_id = int(slug)
@@ -278,50 +278,46 @@ def watch_movie(request, category, slug):
         
         tmdb_url = f"https://api.themoviedb.org/3/{media_type}/{tmdb_id}?api_key={TMDB_API_KEY}&append_to_response=external_ids"
         
+        # Define fields to construct safe fallbacks
+        real_title = f"Premium Stream {slug}"
+        real_overview = "Experience lightning fast premium multi-server streaming source buffers on our global network."
+        imdb_id = ""
+        full_poster = None
+
         try:
             response = requests.get(tmdb_url, timeout=3)
             if response.status_code == 200:
                 data = response.json()
-                real_title = data.get('title') or data.get('name') or f"Premium Stream {slug}"
-                real_overview = data.get('overview', '')
-                imdb_id = data.get('external_ids', {}).get('imdb_id')
+                real_title = data.get('title') or data.get('name') or real_title
+                real_overview = data.get('overview', '') or real_overview
+                imdb_id = data.get('external_ids', {}).get('imdb_id', "")
                 poster_path = data.get('poster_path')
-                full_poster = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else None
-                
-                class MockMatch:
-                    id = tmdb_id
-                    tmdb_id = tmdb_id
-                    imdb_id = imdb_id if imdb_id else ""
-                    title = real_title
-                    description = real_overview
-                    category = 'movie' if media_type == 'movie' else 'web_series'
-                    poster_url = full_poster
-                    slug = str(tmdb_id)
-                    server2_url = ""
-                
-                match = MockMatch()
+                if poster_path:
+                    full_poster = f"https://image.tmdb.org/t/p/w500{poster_path}"
         except Exception:
             pass
 
-        # GUARANTEED INSTANT FALLBACK: If API timeouts or fails, do not redirect! Render instantly!
-        if not match:
-            class AbsoluteMockMatch:
-                id = tmdb_id
-                tmdb_id = tmdb_id
-                imdb_id = ""
-                title = f"Premium Stream {slug}"
-                description = "Experience lightning fast premium multi-server streaming source buffers on our global network."
-                category = 'movie' if media_type == 'movie' else 'web_series'
-                poster_url = None
-                slug = str(tmdb_id)
-                server2_url = ""
-            match = AbsoluteMockMatch()
+        # Robust Dynamic Object Creation using type() to bypass Python inline class variable visibility scope errors
+        match = type('MockMatch', (), {
+            'id': tmdb_id,
+            'tmdb_id': tmdb_id,
+            'imdb_id': imdb_id,
+            'title': real_title,
+            'description': real_overview,
+            'category': 'movie' if media_type == 'movie' else 'web_series',
+            'poster_url': full_poster,
+            'slug': str(tmdb_id),
+            'server2_url': "",
+            'download_480p': f"https://vidlink.pro/embed/{media_type}/{tmdb_id}",
+            'download_720p': f"https://vidlink.pro/embed/{media_type}/{tmdb_id}",
+            'download_1080p': f"https://vidlink.pro/embed/{media_type}/{tmdb_id}"
+        })()
 
-    # 3. Final safety check for absolute missing non-numeric items
+    # 3. Final safety check for absolute missing items
     if not match:
         return redirect('home')
 
-    print(f"DEBUG PIPELINE: StreamPulse Loading Target -> {match.title} (TMDB: {match.tmdb_id})")
+    print(f"DEBUG PIPELINE LIVE: Loading -> {match.title}")
 
     # Sports Routing Section
     if getattr(match, 'category', '') in ['LIVE_SPORTS', 'sports']:
