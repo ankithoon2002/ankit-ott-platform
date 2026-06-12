@@ -35,7 +35,7 @@
             </button>
 
             <button type="button" 
-                    onclick="triggerEngineSwitch('https://vidsrc.me/embed/movie/{{ match.tmdb_id }}', 'default', this)" 
+                    onclick="{% if match.category in 'web_series tv hindi_series hot_series top_web_series anime kids' %}triggerEngineSwitch('https://multiembed.mov/directstream.php?video_id={{ match.tmdb_id }}&tmdb=1&s=1&e=1', 'default', this){% else %}triggerEngineSwitch('https://multiembed.mov/directstream.php?video_id={{ match.tmdb_id }}&tmdb=1', 'default', this){% endif %}" 
                     style="background:#ef4444; color:#fff; padding:10px 20px; border-radius:6px; font-weight:bold; font-size:13px; border:none; cursor:pointer;"
                     class="srv-btn-toggle">
                 🔥 Server 3
