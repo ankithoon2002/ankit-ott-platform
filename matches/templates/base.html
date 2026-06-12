@@ -28,50 +28,74 @@
             -webkit-overflow-scrolling: touch;
         }
         /* Mega Dropdown Styling */
-        .mega-dropdown {
-            position: static !important;
+        .mega-dropdown-wrapper {
+            position: relative;
         }
-        .mega-menu {
+        .mega-menu-v2 {
             display: none;
             position: absolute;
-            width: 100%;
-            left: 0;
             top: 100%;
-            background: white;
-            color: #333;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            border-top: 4px solid #10b981; /* Green border accent */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 650px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             z-index: 1000;
-            padding: 30px 0;
+            padding: 25px;
+            border-radius: 8px;
+            margin-top: 10px;
         }
-        .nav-item:hover .mega-menu {
+        .mega-dropdown-wrapper:hover .mega-menu-v2 {
             display: block;
         }
-        .mega-menu h6 {
+        .mega-menu-v2 .mega-col-header {
+            color: #38bdf8;
+            font-size: 13px;
             font-weight: 800;
             text-transform: uppercase;
-            font-size: 0.75rem;
             letter-spacing: 1px;
-            color: #999;
             margin-bottom: 15px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 5px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #1e293b;
+            display: block;
         }
-        .mega-menu ul {
+        .mega-menu-v2 ul {
             list-style: none;
             padding: 0;
+            margin: 0;
         }
-        .mega-menu ul li a {
-            display: block;
-            padding: 5px 0;
-            color: #333;
+        .mega-menu-v2 ul li {
+            margin-bottom: 8px;
+        }
+        .mega-menu-v2 ul li a {
+            color: #94a3b8;
             text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: 600;
-            transition: color 0.2s;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
         }
-        .mega-menu ul li a:hover {
-            color: #10b981;
+        .mega-menu-v2 ul li a:hover {
+            color: #38bdf8;
+            padding-left: 5px;
+        }
+        /* Underline Glow Effect */
+        .nav-link-glow {
+            position: relative;
+            padding-bottom: 5px;
+        }
+        .nav-link-glow::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #fff, #2dd4bf);
+            transition: width 0.3s ease;
+        }
+        .mega-dropdown-wrapper:hover .nav-link-glow::after {
+            width: 100%;
         }
         
         /* Navbar styling */
@@ -93,23 +117,57 @@
             <!-- Navigation Links for Categories -->
             <div class="hidden lg:flex items-center ml-8">
                 <ul class="navbar-nav space-x-6">
-                    <!-- MOVIES Dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-sm font-black uppercase" href="#" id="moviesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            MOVIES
+                    <!-- MOVIES & SERIES MEGA MENU -->
+                    <li class="nav-item mega-dropdown-wrapper">
+                        <a class="nav-link nav-link-glow text-sm font-black uppercase text-white" href="#">
+                            EXPLORE MOVIES
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-dark border-slate-700 bg-slate-900 shadow-xl" aria-labelledby="moviesDropdown">
-                            <li><a class="dropdown-item text-xs font-bold uppercase py-2" href="/search/?q=Bollywood">Bollywood</a></li>
-                            <li><a class="dropdown-item text-xs font-bold uppercase py-2" href="/search/?q=Hollywood">Hollywood</a></li>
-                            <li><a class="dropdown-item text-xs font-bold uppercase py-2" href="/search/?q=Dual+Audio">Dual Audio</a></li>
-                            <li><hr class="dropdown-divider border-slate-700"></li>
-                            <li><a class="dropdown-item text-xs font-bold uppercase py-2" href="/search/?q=Trending">Trending Now</a></li>
-                        </ul>
+                        <div class="mega-menu-v2">
+                            <div class="row">
+                                <!-- COLUMN 1 -->
+                                <div class="col-4">
+                                    <span class="mega-col-header">Hindi Series (Apps)</span>
+                                    <ul>
+                                        <li><a href="/search/?q=Netflix">Netflix</a></li>
+                                        <li><a href="/search/?q=Amazon+Prime">Amazon Prime</a></li>
+                                        <li><a href="/search/?q=Hotstar">Hotstar</a></li>
+                                        <li><a href="/search/?q=Zee5">Zee5</a></li>
+                                        <li><a href="/search/?q=MX+Player">MX Player</a></li>
+                                        <li><a href="/search/?q=SonyLIV">SonyLIV</a></li>
+                                        <li><a href="/search/?q=JioCinema">JioCinema</a></li>
+                                    </ul>
+                                </div>
+                                <!-- COLUMN 2 -->
+                                <div class="col-4">
+                                    <span class="mega-col-header">Hot Series (18+)</span>
+                                    <ul>
+                                        <li><a href="/search/?q=Ullu">Ullu</a></li>
+                                        <li><a href="/search/?q=MoodX">MoodX</a></li>
+                                        <li><a href="/search/?q=PrimeShots">PrimeShots</a></li>
+                                        <li><a href="/search/?q=Hunter">Hunter</a></li>
+                                        <li><a href="/search/?q=Kooku">Kooku</a></li>
+                                        <li><a href="/search/?q=Voovi">Voovi</a></li>
+                                        <li><a href="/search/?q=Besharams">Besharams</a></li>
+                                    </ul>
+                                </div>
+                                <!-- COLUMN 3 -->
+                                <div class="col-4">
+                                    <span class="mega-col-header">Categories</span>
+                                    <ul>
+                                        <li><a href="/search/?q=Bollywood">Bollywood</a></li>
+                                        <li><a href="/search/?q=Hollywood">Hollywood</a></li>
+                                        <li><a href="/search/?q=South+Hindi+Dubbed">South Hindi Dubbed</a></li>
+                                        <li><a href="/search/?q=Anime">Anime</a></li>
+                                        <li><a href="/search/?q=Dual+Audio">Dual Audio</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
                     </li>
 
                     <!-- MATCHES Dropdown -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-sm font-black uppercase" href="#" id="matchesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle text-sm font-black uppercase text-white" href="#" id="matchesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             MATCHES
                         </a>
                         <ul class="dropdown-menu dropdown-menu-dark border-slate-700 bg-slate-900 shadow-xl" aria-labelledby="matchesDropdown">
