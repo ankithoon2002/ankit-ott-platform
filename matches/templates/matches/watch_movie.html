@@ -28,7 +28,7 @@
             </button>
 
             <button type="button" 
-                    onclick="triggerEngineSwitch('{% if match.server2_url %}{{ match.server2_url }}{% else %}https://speedostream1.com/embed/{{ match.tmdb_id }}{% endif %}', 'bypass', this)" 
+                    onclick="{% if match.server2_url %}triggerEngineSwitch('{{ match.server2_url }}', 'bypass', this){% elif match.category in 'web_series tv hindi_series hot_series top_web_series anime kids' %}triggerEngineSwitch('https://vidsrc.to/embed/tv/{{ match.tmdb_id }}/1/1', 'default', this){% else %}triggerEngineSwitch('https://vidsrc.to/embed/movie/{{ match.tmdb_id }}', 'default', this){% endif %}" 
                     style="background:#6366f1; color:#fff; padding:10px 20px; border-radius:6px; font-weight:bold; font-size:13px; border:none; cursor:pointer;"
                     class="srv-btn-toggle">
                 🚀 Server 2
