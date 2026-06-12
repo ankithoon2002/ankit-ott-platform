@@ -21,14 +21,14 @@
         <div class="btn-tabs-flex-row" style="display:flex; gap:12px; justify-content: center; flex-wrap: wrap;">
             
             <button type="button" 
-                    onclick="triggerEngineSwitch('https://gemma416okl.com/play/{% if match.imdb_id %}{{ match.imdb_id }}{% else %}tt13847564{% endif %}', 'default', this)" 
+                    onclick="triggerEngineSwitch('https://gemma416okl.com/play/{{ match.imdb_id|default:'tt13847564' }}', 'default', this)" 
                     style="background:#10b981; color:#fff; padding:10px 20px; border-radius:6px; font-weight:bold; font-size:13px; border:none; cursor:pointer;"
                     class="srv-btn-toggle active-glow">
                 ⚡ Server 1
             </button>
 
             <button type="button" 
-                    onclick="triggerEngineSwitch('{% if match.server2_url %}{{ match.server2_url }}{% else %}https://vidlink.pro/embed/movie/{{ match.tmdb_id }}{% endif %}', 'bypass', this)" 
+                    onclick="triggerEngineSwitch('{% if match.server2_url %}{{ match.server2_url }}{% else %}https://speedostream1.com/embed/{{ match.tmdb_id }}{% endif %}', 'bypass', this)" 
                     style="background:#6366f1; color:#fff; padding:10px 20px; border-radius:6px; font-weight:bold; font-size:13px; border:none; cursor:pointer;"
                     class="srv-btn-toggle">
                 🚀 Server 2
@@ -43,6 +43,22 @@
 
         </div>
     </div>
+
+    {% if match.download_1080p or match.download_720p or match.download_480p or match.slug %}
+    <div class="download-portal-container" style="margin-top: 30px; background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
+        <h3 style="color: #fff; font-size: 16px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; border-left: 4px solid #38bdf8; padding-left: 10px;">
+            📥 Premium Direct Download Servers (High-Speed)
+        </h3>
+        <div class="download-links-grid" style="display: flex; flex-direction: column; gap: 10px;">
+            <a href="{% if match.download_1080p %}{{ match.download_1080p }}{% else %}https://vidlink.pro/embed/movie/{{ match.tmdb_id }}{% endif %}" class="dl-btn-action" style="background: #0284c7; color: #fff; padding: 12px; border-radius: 6px; text-decoration: none; font-weight: bold; text-align: center; display: block;" target="_blank">
+                ⚡ Cloud Direct High-Speed Download (1080p - 2.83 GB)
+            </a>
+            <a href="{% if match.download_720p %}{{ match.download_720p }}{% else %}https://vidsrc.me/embed/movie/{{ match.tmdb_id }}{% endif %}" class="dl-btn-action" style="background: #22c55e; color: #fff; padding: 12px; border-radius: 6px; text-decoration: none; font-weight: bold; text-align: center; display: block;" target="_blank">
+                🚀 Fast Direct Mirror Server (720p Dual Audio)
+            </a>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 <div class="max-w-[1000px] mx-auto px-4 mt-8">
