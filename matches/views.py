@@ -2,6 +2,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import Match
 from accounts.models import Watchlist, UserProfile
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import user_passes_test
+from django.core.management import call_command
 from django.db.models import Q
 
 import requests
@@ -25,6 +27,15 @@ def platform_filter(platform):
         Q(server_1_name__icontains=normalized_platform) |
         Q(server_1_name__icontains=platform_name)
     )
+
+
+@user_passes_test(lambda user: user.is_superuser)
+def trigger_slug_repair(request):
+    try:
+        call_command('fix_slugs')
+        return HttpResponse("🎉 BOOM! Slug repair command executed successfully through HTTP view!")
+    except Exception as exc:
+        return HttpResponse(f"Error executing command: {str(exc)}")
 
 
 @csrf_exempt
