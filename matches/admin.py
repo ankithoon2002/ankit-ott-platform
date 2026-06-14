@@ -1,8 +1,29 @@
 from django.contrib import admin
+from import_export import fields, resources
+from import_export.admin import ImportExportModelAdmin
+
 from .models import Match
 
+
+class MatchResource(resources.ModelResource):
+    platform = fields.Field(attribute='server_1_name', column_name='platform')
+
+    class Meta:
+        model = Match
+        fields = (
+            'id',
+            'title',
+            'category',
+            'platform',
+            'poster_url',
+            'server2_url',
+        )
+        import_id_fields = ('title',)
+        export_order = fields
+
 @admin.register(Match)
-class MatchAdmin(admin.ModelAdmin):
+class MatchAdmin(ImportExportModelAdmin):
+    resource_classes = [MatchResource]
     list_display = ('title', 'category', 'is_featured', 'is_live', 'match_status_text')
     list_filter = ('is_live', 'is_featured', 'category', 'tournament')
     search_fields = ('title', 'description', 'tournament', 'venue')
@@ -12,7 +33,7 @@ class MatchAdmin(admin.ModelAdmin):
         }),
         ('Streaming Servers', {
             'fields': (
-                'live_link', 'server_1_name', 'server_1_badge',
+                'live_link', 'server2_url', 'server_1_name', 'server_1_badge',
                 'server_2_link', 'server_2_name', 'server_2_badge',
                 'server_3_link', 'server_3_name', 'server_3_badge',
                 'server_4_link', 'server_4_name', 'server_4_badge',
