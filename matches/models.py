@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.text import slugify
 
 class Match(models.Model):
     is_featured = models.BooleanField(default=False)
@@ -80,3 +81,15 @@ class Match(models.Model):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.title) or "match"
+            slug = base_slug
+            suffix = 2
+            while Match.objects.exclude(pk=self.pk).filter(slug=slug).exists():
+                slug = f"{base_slug}-{suffix}"
+                suffix += 1
+            self.slug = slug
+
+        super().save(*args, **kwargs)

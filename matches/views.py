@@ -10,11 +10,21 @@ from django.views.decorators.csrf import csrf_exempt
 
 
 HOT_SERIES_CATEGORY = 'hot_series'
-HOT_SERIES_PLATFORMS = {'ullu', 'moodx'}
 
 
 def public_matches_queryset():
     return Match.objects.exclude(category=HOT_SERIES_CATEGORY)
+
+
+def platform_filter(platform):
+    normalized_platform = platform.lower()
+    platform_name = normalized_platform.replace('-', ' ')
+    return (
+        Q(server_1_name__iexact=normalized_platform) |
+        Q(server_1_name__iexact=platform_name) |
+        Q(server_1_name__icontains=normalized_platform) |
+        Q(server_1_name__icontains=platform_name)
+    )
 
 
 @csrf_exempt
@@ -277,17 +287,17 @@ def watch_movie(request, category, slug):
 
     if (
         category == HOT_SERIES_CATEGORY
-        and requested_platform in HOT_SERIES_PLATFORMS
         and slug.lower() == requested_platform
     ):
         platform_items = Match.objects.filter(
             category=HOT_SERIES_CATEGORY,
-            server_1_name__iexact=requested_platform,
+        ).filter(
+            platform_filter(requested_platform)
         ).order_by('-id')
 
         return render(request, 'matches/home.html', {
             'search_results': platform_items,
-            'search_query': requested_platform.title(),
+            'search_query': requested_platform.replace('-', ' ').title(),
             'is_platform_listing': True,
         })
 
@@ -298,12 +308,13 @@ def watch_movie(request, category, slug):
         Q(slug=slug)
     )
     if category == HOT_SERIES_CATEGORY:
-        if platform not in HOT_SERIES_PLATFORMS:
+        if not platform:
             return redirect('home')
 
         match = Match.objects.filter(
             category=HOT_SERIES_CATEGORY,
-            server_1_name__iexact=platform,
+        ).filter(
+            platform_filter(platform),
         ).filter(lookup_filter).first()
     else:
         match = public_matches_queryset().filter(lookup_filter).first()
@@ -379,7 +390,8 @@ def watch_movie(request, category, slug):
     if current_category == HOT_SERIES_CATEGORY:
         related_queryset = Match.objects.filter(
             category=HOT_SERIES_CATEGORY,
-            server_1_name__iexact=platform,
+        ).filter(
+            platform_filter(platform),
         )
     else:
         related_queryset = public_matches_queryset().filter(category=current_category)

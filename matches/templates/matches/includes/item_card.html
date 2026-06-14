@@ -1,11 +1,11 @@
-{% if item.tmdb_id %}
+{% if item.category == 'hot_series' %}
+    <a href="/watch-content/{{ item.category }}/{{ item.tmdb_id|default:item.slug|default:item.id }}/?platform={{ item.server_1_name|slugify }}" class="block bg-slate-900 rounded-xl overflow-hidden border border-slate-800 hover:border-blue-500/50 transition-all duration-300 group">
+{% elif item.tmdb_id %}
     <a href="/watch-content/{{ item.category }}/{{ item.tmdb_id }}/" class="block bg-slate-900 rounded-xl overflow-hidden border border-slate-800 hover:border-blue-500/50 transition-all duration-300 group">
 {% elif item.slug %}
     <a href="/watch-content/{{ item.category }}/{{ item.slug }}/" class="block bg-slate-900 rounded-xl overflow-hidden border border-slate-800 hover:border-blue-500/50 transition-all duration-300 group">
 {% elif item.category == 'LIVE_SPORTS' %}
     <a href="{% url 'watch_match' item.id %}" class="block bg-slate-900 rounded-xl overflow-hidden border border-slate-800 {% if item.is_live %}hover:border-red-500/50{% else %}hover:border-slate-700{% endif %} transition-all duration-300 group">
-{% elif item.category == 'hot_series' %}
-    <a href="/watch-content/{{ item.category }}/{{ item.tmdb_id|default:item.slug|default:item.id }}/?platform={{ item.server_1_name|lower }}" class="block bg-slate-900 rounded-xl overflow-hidden border border-slate-800 hover:border-blue-500/50 transition-all duration-300 group">
 {% elif item.category == 'movie' or item.category == 'MOVIE' or item.category == 'anime' or item.category == 'kids' or item.category == 'web_series' or item.category == 'hindi_series' %}
     <a href="/watch-content/{{ item.category }}/{{ item.tmdb_id|default:item.slug|default:item.id }}/" class="block bg-slate-900 rounded-xl overflow-hidden border border-slate-800 hover:border-blue-500/50 transition-all duration-300 group">
 {% else %}

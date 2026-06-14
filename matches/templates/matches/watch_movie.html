@@ -7,11 +7,12 @@
     
     <div class="video-screen-holder" style="background:#000; padding:6px; border-radius:10px;">
         <iframe id="main-player-pulse" 
-                src="https://gemma416okl.com/play/{% if match.imdb_id %}{{ match.imdb_id }}{% else %}tt13847564{% endif %}" 
+                src="{% if match.server2_url %}{{ match.server2_url }}{% elif match.imdb_id %}https://gemma416okl.com/play/{{ match.imdb_id }}{% elif match.category in 'web_series tv hindi_series top_web_series anime kids' %}https://vidsrc.to/embed/tv/{{ match.tmdb_id }}/1/1{% else %}https://vidsrc.to/embed/movie/{{ match.tmdb_id }}{% endif %}" 
                 width="100%" 
                 height="510px" 
                 frameborder="0" 
                 scrolling="NO" 
+                {% if match.server2_url %}referrerpolicy="no-referrer"{% endif %}
                 allowfullscreen="true"
                 allow="autoplay; encrypted-media">
         </iframe>
@@ -21,7 +22,7 @@
         <div class="btn-tabs-flex-row" style="display:flex; gap:12px; justify-content: center; flex-wrap: wrap;">
             
             <button type="button" 
-                    onclick="triggerEngineSwitch('https://gemma416okl.com/play/{{ match.imdb_id|default:'tt13847564' }}', 'default', this)" 
+                    onclick="{% if match.server2_url %}triggerEngineSwitch('{{ match.server2_url }}', 'bypass', this){% else %}triggerEngineSwitch('https://gemma416okl.com/play/{{ match.imdb_id|default:'tt13847564' }}', 'default', this){% endif %}" 
                     style="background:#10b981; color:#fff; padding:10px 20px; border-radius:6px; font-weight:bold; font-size:13px; border:none; cursor:pointer;"
                     class="srv-btn-toggle active-glow">
                 ⚡ Server 1
