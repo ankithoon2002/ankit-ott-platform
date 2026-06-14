@@ -89,7 +89,11 @@
         {% if search_results %}
             <h2 class="text-2xl font-bold mb-8 flex items-center">
                 <span class="w-1 h-8 bg-red-600 mr-4"></span>
+                {% if is_platform_listing %}
+                {{ search_query }} Originals
+                {% else %}
                 Search Results for "{{ search_query }}"
+                {% endif %}
             </h2>
             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-16">
                 {% for match in search_results %}
@@ -98,7 +102,7 @@
             </div>
         {% endif %}
 
-        {% if not search_query or search_results %}
+        {% if not search_query %}
             <!-- Latest Movies Row -->
             <div id="latest-movies" class="mb-16">
                 <h2 class="text-2xl font-bold mb-6 flex items-center">

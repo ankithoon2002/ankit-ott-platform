@@ -9,6 +9,14 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 
+HOT_SERIES_CATEGORY = 'hot_series'
+HOT_SERIES_PLATFORMS = {'ullu', 'moodx'}
+
+
+def public_matches_queryset():
+    return Match.objects.exclude(category=HOT_SERIES_CATEGORY)
+
+
 @csrf_exempt
 def auto_sync_movies(request):
     # TMDB API Configuration (Asli Active Key)
@@ -73,17 +81,20 @@ def auto_sync_movies(request):
 
 
 def home(request):
+    public_matches = public_matches_queryset()
+
     # 1. Fetch Featured items for the Hotstar-style Slider
-    featured_items = Match.objects.filter(is_featured=True).order_by('-id')[:5]
+    featured_items = public_matches.filter(is_featured=True).order_by('-id')[:5]
 
     # 2. Fetch Categorized Rows from Database
-    latest_movies = Match.objects.filter(category='movie').only('tmdb_id', 'imdb_id', 'title', 'poster_url', 'category', 'slug', 'description').order_by('-id')[:15]
-    web_series_list = Match.objects.filter(category__in=['TOP_WEB_SERIES', 'web_series']).only('tmdb_id', 'imdb_id', 'title', 'poster_url', 'category', 'slug', 'description').order_by('-id')[:15]
-    anime_universe = Match.objects.filter(category='anime').only('tmdb_id', 'imdb_id', 'title', 'poster_url', 'category', 'slug', 'description').order_by('-id')[:15]
-    kids_cartoons = Match.objects.filter(category='kids').only('tmdb_id', 'imdb_id', 'title', 'poster_url', 'category', 'slug', 'description').order_by('-id')[:15]
+    public_card_fields = ('tmdb_id', 'imdb_id', 'title', 'poster_url', 'category', 'slug', 'description')
+    latest_movies = public_matches.filter(category='movie').only(*public_card_fields).order_by('-id')[:15]
+    web_series_list = public_matches.filter(category__in=['TOP_WEB_SERIES', 'web_series']).only(*public_card_fields).order_by('-id')[:15]
+    anime_universe = public_matches.filter(category='anime').only(*public_card_fields).order_by('-id')[:15]
+    kids_cartoons = public_matches.filter(category='kids').only(*public_card_fields).order_by('-id')[:15]
 
     # 3. Live sports (Isolated)
-    live_sports = Match.objects.filter(category='LIVE_SPORTS').only('tmdb_id', 'imdb_id', 'title', 'poster_url', 'category', 'slug', 'description', 'team_a_score', 'team_b_score', 'is_live', 'match_date')
+    live_sports = public_matches.filter(category='LIVE_SPORTS').only('tmdb_id', 'imdb_id', 'title', 'poster_url', 'category', 'slug', 'description', 'team_a_score', 'team_b_score', 'is_live', 'match_date')
 
     # TMDB API Configuration (Legacy/Fallback)
     TMDB_API_KEY = '8265bd1679663a7ea12ac168da84d2e8'
@@ -133,7 +144,7 @@ def home(request):
     if request.user.is_authenticated:
         profile_id = request.session.get('active_profile_id')
         if profile_id:
-            watchlist_items = Match.objects.filter(watchlist__profile_id=profile_id).order_by('-watchlist__added_at')
+            watchlist_items = public_matches.filter(watchlist__profile_id=profile_id).order_by('-watchlist__added_at')
 
     context = {
         'featured_items': featured_items,
@@ -158,7 +169,7 @@ def search(request):
     
     if query:
         # DB Search: OR across title, platform, and category
-        db_results = Match.objects.filter(
+        db_results = public_matches_queryset().filter(
             Q(title__icontains=query) | 
             Q(server_1_name__icontains=query) | 
             Q(category__icontains=query)
@@ -262,39 +273,50 @@ def watch_movie(request, category, slug):
     import requests
 
     platform = request.GET.get('platform', '').lower()
+    requested_platform = platform or slug.lower()
+
+    if (
+        category == HOT_SERIES_CATEGORY
+        and requested_platform in HOT_SERIES_PLATFORMS
+        and slug.lower() == requested_platform
+    ):
+        platform_items = Match.objects.filter(
+            category=HOT_SERIES_CATEGORY,
+            server_1_name__iexact=requested_platform,
+        ).order_by('-id')
+
+        return render(request, 'matches/home.html', {
+            'search_results': platform_items,
+            'search_query': requested_platform.title(),
+            'is_platform_listing': True,
+        })
 
     # 1. First lookup inside the database
-    match = Match.objects.filter(
-        Q(id=int(slug) if slug.isdigit() else None) | 
-        Q(tmdb_id=int(slug) if slug.isdigit() else None) | 
+    lookup_filter = (
+        Q(id=int(slug) if slug.isdigit() else None) |
+        Q(tmdb_id=int(slug) if slug.isdigit() else None) |
         Q(slug=slug)
-    ).first()
+    )
+    if category == HOT_SERIES_CATEGORY:
+        if platform not in HOT_SERIES_PLATFORMS:
+            return redirect('home')
 
-    # 2. Automated Category Matching Engine for hot_series brands
-    if not match and category == 'hot_series' and platform:
-        # Dynamic lookup for hot_series brands (Ullu, MoodX, etc.)
-        # We create a mock object for the specific platform
-        match = type('MockHotSeries', (), {
-            'id': 0,
-            'tmdb_id': slug,  # Use slug as id if numeric, or title tag
-            'imdb_id': '',
-            'title': f"{platform.upper()} Special: {slug.replace('-', ' ').title()}",
-            'description': f"Stream the latest premium content from {platform.upper()} exclusively on our high-speed servers.",
-            'category': 'hot_series',
-            'poster_url': None,
-            'slug': slug,
-            'server2_url': "",
-            'download_480p': "",
-            'download_720p': "",
-            'download_1080p': ""
-        })()
+        match = Match.objects.filter(
+            category=HOT_SERIES_CATEGORY,
+            server_1_name__iexact=platform,
+        ).filter(lookup_filter).first()
+    else:
+        match = public_matches_queryset().filter(lookup_filter).first()
+
+    if not match and category == HOT_SERIES_CATEGORY:
+        return redirect('home')
 
     # 3. If NOT in DB and slug is a digit, handle dynamic TMDB setup
     if not match and slug.isdigit():
         TMDB_API_KEY = '8265bd1679663a7ea12ac168da84d2e8'
         tmdb_id = int(slug)
         
-        is_tv = category.lower() in ['web_series', 'tv', 'hindi_series', 'hot_series', 'top_web_series', 'anime', 'kids']
+        is_tv = category.lower() in ['web_series', 'tv', 'hindi_series', HOT_SERIES_CATEGORY, 'top_web_series', 'anime', 'kids']
         media_type = 'tv' if is_tv else 'movie'
         
         tmdb_url = f"https://api.themoviedb.org/3/{media_type}/{tmdb_id}?api_key={TMDB_API_KEY}&append_to_response=external_ids"
@@ -354,7 +376,14 @@ def watch_movie(request, category, slug):
     
     # OTT Entertainment Context & Related Grid Logic
     current_category = getattr(match, 'category', 'movie')
-    related_contents = Match.objects.filter(category=current_category).exclude(id=getattr(match, 'id', None))[:12]
+    if current_category == HOT_SERIES_CATEGORY:
+        related_queryset = Match.objects.filter(
+            category=HOT_SERIES_CATEGORY,
+            server_1_name__iexact=platform,
+        )
+    else:
+        related_queryset = public_matches_queryset().filter(category=current_category)
+    related_contents = related_queryset.exclude(id=getattr(match, 'id', None))[:12]
     
     context = {
         'match': match,
