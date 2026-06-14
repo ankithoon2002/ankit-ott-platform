@@ -1,7 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Match
 from accounts.models import Watchlist, UserProfile
-from django.contrib.auth.decorators import login_required
 from django.core.management import call_command
 from django.db.models import Q
 
@@ -13,6 +12,7 @@ HOT_SERIES_CATEGORY = 'hot_series'
 
 
 def public_matches_queryset():
+    """Sirf public movies return karega, hot_series ko exclude karke"""
     return Match.objects.exclude(category=HOT_SERIES_CATEGORY)
 
 
@@ -27,7 +27,6 @@ def platform_filter(platform):
     )
 
 
-# 100% FREE BYPASS: Isme se security decorator mita diya hai taaki password na maange
 def trigger_slug_repair(request):
     try:
         call_command('fix_slugs')
@@ -53,8 +52,7 @@ def auto_sync_movies(request):
     try:
         for cat in categories:
             response = requests.get(cat['url'], timeout=10)
-            if response.status_code != 200:
-                continue
+            if response.status_code != 200: continue
 
             movies_data = response.json().get('results', [])[:20]
             for movie in movies_data:
@@ -62,64 +60,44 @@ def auto_sync_movies(request):
                 title = movie.get('title')
                 overview = movie.get('overview', '')
                 poster_path = movie.get('poster_path')
-
-                external_ids_url = f"{BASE_URL}/movie/{tmdb_id}/external_ids?api_key={TMDB_API_KEY}"
-                ext_response = requests.get(external_ids_url, timeout=5)
-                imdb_id = None
-                if ext_response.status_code == 200:
-                    imdb_id = ext_response.json().get('imdb_id')
-
                 full_poster_link = f"{IMAGE_BASE_URL}{poster_path}" if poster_path else None
 
-                defaults_dict = {
-                    'description': overview,
-                    'category': cat['id'],
-                    'imdb_id': imdb_id,
-                }
+                defaults_dict = {'description': overview, 'category': cat['id']}
 
                 if hasattr(Match, 'poster'):
                     defaults_dict['poster'] = full_poster_link
                 elif hasattr(Match, 'poster_url'):
                     defaults_dict['poster_url'] = full_poster_link
 
-                Match.objects.update_or_create(
-                    title=title,
-                    defaults=defaults_dict
-                )
+                Match.objects.update_or_create(title=title, defaults=defaults_dict)
                 total_synced += 1
 
-        return HttpResponse(
-            f"<h1>Successfully synced {total_synced} movies across all categories!</h1><p>Go back to <a href='/'>Home Page</a></p>")
-
+        return HttpResponse(f"<h1>Successfully synced {total_synced} movies!</h1>")
     except Exception as e:
-        return HttpResponse(
-            f"<h1>Backend Sync Error:</h1><p>{str(e)}</p>",
-            status=500)
+        return HttpResponse(f"<h1>Backend Sync Error:</h1><p>{str(e)}</p>", status=500)
 
 
 def home(request):
     public_matches = public_matches_queryset()
-
     featured_items = public_matches.filter(is_featured=True).order_by('-id')[:5]
 
     public_card_fields = ('tmdb_id', 'imdb_id', 'title', 'poster_url', 'category', 'slug', 'description')
+
+    # SEPARATED CATEGORIES (Strict DB Filters)
     latest_movies = public_matches.filter(category='movie').only(*public_card_fields).order_by('-id')[:15]
     web_series_list = public_matches.filter(category__in=['TOP_WEB_SERIES', 'web_series']).only(
         *public_card_fields).order_by('-id')[:15]
     anime_universe = public_matches.filter(category='anime').only(*public_card_fields).order_by('-id')[:15]
     kids_cartoons = public_matches.filter(category='kids').only(*public_card_fields).order_by('-id')[:15]
-
     live_sports = public_matches.filter(category='LIVE_SPORTS').only('tmdb_id', 'imdb_id', 'title', 'poster_url',
-                                                                     'category', 'slug', 'description', 'team_a_score',
-                                                                     'team_b_score', 'is_live', 'match_date')
+                                                                     'category', 'slug', 'description', 'is_live')
 
     TMDB_API_KEY = '8265bd1679663a7ea12ac168da84d2e8'
     BASE_URL = 'https://api.themoviedb.org/3'
     IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500'
 
     def fetch_from_tmdb(endpoint, params=None):
-        if params is None:
-            params = {}
+        if params is None: params = {}
         params['api_key'] = TMDB_API_KEY
         try:
             response = requests.get(f"{BASE_URL}/{endpoint}", params=params, timeout=3)
@@ -129,18 +107,12 @@ def home(request):
                 for item in results[:15]:
                     title = item.get('title') or item.get('name')
                     poster_path = item.get('poster_path')
-
                     mock_item = type('MockMatch', (), {
-                        'id': item.get('id'),
-                        'tmdb_id': item.get('id'),
-                        'imdb_id': None,
-                        'title': title,
+                        'id': item.get('id'), 'tmdb_id': item.get('id'), 'imdb_id': None, 'title': title,
                         'description': item.get('overview', ''),
                         'poster_url': f"{IMAGE_BASE_URL}{poster_path}" if poster_path else None,
-                        'category': 'movie' if item.get('title') else 'web_series',
-                        'slug': str(item.get('id')),
-                        'get_category_display': lambda: 'Movie' if item.get('title') else 'TV Show',
-                        'is_live': False,
+                        'category': 'movie' if item.get('title') else 'web_series', 'slug': str(item.get('id')),
+                        'get_category_display': lambda: 'Movie' if item.get('title') else 'TV Show', 'is_live': False,
                         'media_type': 'movie' if item.get('title') else 'tv'
                     })
                     formatted_results.append(mock_item)
@@ -164,18 +136,10 @@ def home(request):
             watchlist_items = public_matches.filter(watchlist__profile_id=profile_id).order_by('-watchlist__added_at')
 
     context = {
-        'featured_items': featured_items,
-        'latest_movies': latest_movies,
-        'web_series_list': web_series_list,
-        'anime_universe': anime_universe,
-        'kids_cartoons': kids_cartoons,
-        'live_sports': live_sports,
-        'trending_movies': trending_movies,
-        'bollywood_hits': bollywood_hits,
-        'south_hindi': south_hindi,
-        'hollywood_releases': hollywood_releases,
-        'web_series': web_series,
-        'watchlist_items': watchlist_items,
+        'featured_items': featured_items, 'latest_movies': latest_movies, 'web_series_list': web_series_list,
+        'anime_universe': anime_universe, 'kids_cartoons': kids_cartoons, 'live_sports': live_sports,
+        'trending_movies': trending_movies, 'bollywood_hits': bollywood_hits, 'south_hindi': south_hindi,
+        'hollywood_releases': hollywood_releases, 'web_series': web_series, 'watchlist_items': watchlist_items,
     }
     return render(request, 'matches/home.html', context)
 
@@ -183,102 +147,49 @@ def home(request):
 def search(request):
     query = request.GET.get('q')
     final_results = []
-
     if query:
-        db_results = public_matches_queryset().filter(
-            Q(title__icontains=query) |
-            Q(server_1_name__icontains=query) |
-            Q(category__icontains=query)
-        )
-        for item in db_results:
-            final_results.append(item)
-
+        db_results = public_matches_queryset().filter(Q(title__icontains=query) | Q(category__icontains=query))
+        for item in db_results: final_results.append(item)
         TMDB_API_KEY = '8265bd1679663a7ea12ac168da84d2e8'
         search_url = f"https://api.themoviedb.org/3/search/multi?api_key={TMDB_API_KEY}&query={query}"
-
         try:
             response = requests.get(search_url, timeout=3)
             if response.status_code == 200:
-                tmdb_results = response.json().get('results', [])
-                for item in tmdb_results:
+                for item in response.json().get('results', []):
                     media_type = item.get('media_type')
-                    if media_type not in ['movie', 'tv']:
-                        continue
-
+                    if media_type not in ['movie', 'tv']: continue
                     title = item.get('title') or item.get('name')
-                    if not title:
-                        continue
-
+                    if not title: continue
                     poster_path = item.get('poster_path')
-
                     mock_item = type('MockMatch', (), {
-                        'id': item.get('id'),
-                        'tmdb_id': item.get('id'),
-                        'imdb_id': None,
-                        'title': title,
+                        'id': item.get('id'), 'tmdb_id': item.get('id'), 'imdb_id': None, 'title': title,
                         'description': item.get('overview', ''),
                         'poster_url': f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else None,
-                        'category': 'movie' if media_type == 'movie' else 'web_series',
-                        'slug': str(item.get('id')),
+                        'category': 'movie' if media_type == 'movie' else 'web_series', 'slug': str(item.get('id')),
                         'get_category_display': lambda: 'Movie' if media_type == 'movie' else 'TV Show',
-                        'media_type': media_type,
-                        'is_live': False,
+                        'media_type': media_type, 'is_live': False,
                     })
                     final_results.append(mock_item)
         except Exception:
             pass
+    return render(request, 'matches/home.html', {'search_results': final_results, 'search_query': query})
+
+
+# ⚡ VIEW ALL / WATCH MORE FUNCTION: Isme har category strictly alag ho jayegi
+def category_view(request, category_name):
+    """Jab koi View All ya Watch More par click karega"""
+    if category_name == HOT_SERIES_CATEGORY:
+        movies = Match.objects.filter(category=HOT_SERIES_CATEGORY).order_by('-id')
+    else:
+        movies = public_matches_queryset().filter(category=category_name).order_by('-id')
 
     return render(request, 'matches/home.html', {
-        'search_results': final_results,
-        'search_query': query
+        'search_results': movies,
+        'search_query': category_name.replace('_', ' ').title(),
+        'is_category_listing': True
     })
 
 
-def fetch_live_cricket_score(match):
-    RAPID_API_KEY = "8265bd1679663a7ea12ac168da84d2e8"
-    RAPID_API_HOST = "cricket-api-free-data.p.rapidapi.com"
-
-    url = f"https://{RAPID_API_HOST}/live-score"
-    headers = {
-        "X-RapidAPI-Key": RAPID_API_KEY,
-        "X-RapidAPI-Host": RAPID_API_HOST
-    }
-
-    try:
-        response = requests.get(url, headers=headers, timeout=5)
-        if response.status_code == 200:
-            data = response.json()
-            return {
-                'total_runs': data.get('runs', match.total_runs),
-                'wickets': data.get('wickets', match.wickets),
-                'overs': str(data.get('overs', match.overs)),
-                'current_run_rate': str(data.get('crr', match.current_run_rate)),
-                'target': match.target,
-                'recent_balls': data.get('recent_balls', match.recent_balls),
-                'score_history': data.get('score_history', match.score_history.get('overs_history', []) if isinstance(
-                    match.score_history, dict) else []),
-                'batsmen': data.get('batsmen', match.score_history.get('batsmen', []) if isinstance(match.score_history,
-                                                                                                    dict) else []),
-                'bowlers': data.get('bowlers', match.score_history.get('bowlers', []) if isinstance(match.score_history,
-                                                                                                    dict) else [])
-            }
-    except Exception:
-        pass
-
-    return {
-        'total_runs': match.total_runs,
-        'wickets': match.wickets,
-        'overs': f"{match.overs:.1f}",
-        'current_run_rate': f"{match.current_run_rate:.2f}",
-        'target': match.target,
-        'recent_balls': match.recent_balls,
-        'score_history': match.score_history.get('overs_history', []) if isinstance(match.score_history, dict) else [],
-        'batsmen': match.score_history.get('batsmen', []) if isinstance(match.score_history, dict) else [],
-        'bowlers': match.score_history.get('bowlers', []) if isinstance(match.score_history, dict) else []
-    }
-
-
-# FIXES APPLIED HERE: Clean fallback mechanisms for streaming routing
 def watch_movie(request, category, slug):
     from django.db.models import Q
     import requests
@@ -286,45 +197,37 @@ def watch_movie(request, category, slug):
     platform = request.GET.get('platform', '').lower()
     requested_platform = platform or slug.lower()
 
-    # 1. Handle Ullu/MoodX dynamic list listing view
+    # 1. Handle Ullu/MoodX dynamic watch more listing
     if category == HOT_SERIES_CATEGORY and requested_platform in ['ullu', 'moodx']:
-        platform_items = Match.objects.filter(
-            category=HOT_SERIES_CATEGORY,
-        ).filter(
-            platform_filter(requested_platform)
-        ).order_by('-id')
-
+        platform_items = Match.objects.filter(category=HOT_SERIES_CATEGORY).filter(
+            platform_filter(requested_platform)).order_by('-id')
         return render(request, 'matches/home.html', {
-            'search_results': platform_items,
-            'search_query': requested_platform.replace('-', ' ').title(),
-            'is_platform_listing': True,
+            'search_results': platform_items, 'search_query': requested_platform.upper(), 'is_platform_listing': True,
         })
 
-    # 2. General single-record streaming playback query mapping
-    lookup_filter = (
-            Q(id=int(slug) if slug.isdigit() else None) |
-            Q(tmdb_id=int(slug) if slug.isdigit() else None) |
-            Q(slug=slug)
-    )
+    match = None
+    lookup_filter = Q()
+    if slug.isdigit():
+        lookup_filter |= Q(id=int(slug)) | Q(tmdb_id=int(slug))
+    else:
+        lookup_filter |= Q(slug=slug)
 
-    # Query database safely without rigid platform nesting blockers
-    match = Match.objects.filter(lookup_filter).first()
+    if lookup_filter:
+        match = Match.objects.filter(lookup_filter).first()
 
-    # 3. Dynamic setup fallback via TMDB context fetching logic
+    # 2. Automatic Live Multi-Source Player Generation
     if not match and slug.isdigit():
         TMDB_API_KEY = '8265bd1679663a7ea12ac168da84d2e8'
         tmdb_id = int(slug)
-
         is_tv = category.lower() in ['web_series', 'tv', 'hindi_series', HOT_SERIES_CATEGORY, 'top_web_series', 'anime',
                                      'kids']
         media_type = 'tv' if is_tv else 'movie'
 
         tmdb_url = f"https://api.themoviedb.org/3/{media_type}/{tmdb_id}?api_key={TMDB_API_KEY}&append_to_response=external_ids"
-
         real_title = f"Premium Stream {slug}"
         real_overview = "Experience lightning fast premium multi-server streaming source buffers on our global network."
-        imdb_id = ""
         full_poster = None
+        imdb_id = ""
 
         try:
             response = requests.get(tmdb_url, timeout=3)
@@ -334,51 +237,33 @@ def watch_movie(request, category, slug):
                 real_overview = data.get('overview', '') or real_overview
                 imdb_id = data.get('external_ids', {}).get('imdb_id', "")
                 poster_path = data.get('poster_path')
-                if poster_path:
-                    full_poster = f"https://image.tmdb.org/t/p/w500{poster_path}"
+                if poster_path: full_poster = f"https://image.tmdb.org/t/p/w500{poster_path}"
         except Exception:
             pass
 
+        asli_player_source = f"https://vidlink.pro/embed/{media_type}/{tmdb_id}"
+        if imdb_id:
+            asli_player_source = f"https://gemma416okl.com/play/{imdb_id}"
+
         match = type('MockMatch', (), {
-            'id': tmdb_id,
-            'tmdb_id': tmdb_id,
-            'imdb_id': imdb_id,
-            'title': real_title,
-            'description': real_overview,
-            'category': 'movie' if media_type == 'movie' else 'web_series',
-            'poster_url': full_poster,
-            'slug': str(tmdb_id),
-            'server2_url': f"https://vidlink.pro/embed/{media_type}/{tmdb_id}",
-            'download_480p': f"https://vidlink.pro/embed/{media_type}/{tmdb_id}",
-            'download_720p': f"https://vidlink.pro/embed/{media_type}/{tmdb_id}",
-            'download_1080p': f"https://vidlink.pro/embed/{media_type}/{tmdb_id}"
+            'id': tmdb_id, 'tmdb_id': tmdb_id, 'imdb_id': imdb_id, 'title': real_title, 'description': real_overview,
+            'category': category, 'poster_url': full_poster, 'slug': str(tmdb_id),
+            'server_1_url': asli_player_source, 'server2_url': asli_player_source, 'main_url': asli_player_source,
+            'video_url': asli_player_source, 'download_480p': asli_player_source, 'download_720p': asli_player_source,
+            'download_1080p': asli_player_source
         })()
 
     if not match:
         return redirect('home')
 
-    print(f"DEBUG PIPELINE LIVE: Loading -> {match.title}")
-
-    # Sports Routing Section
-    if getattr(match, 'category', '') in ['LIVE_SPORTS', 'sports', 'live_match']:
-        related_contents = Match.objects.filter(category__in=['LIVE_SPORTS', 'sports', 'live_match']).exclude(
-            id=getattr(match, 'id', None))[:12]
-        context = {
-            'match': match,
-            'is_ott': False,
-            'related_contents': related_contents
-        }
-        score_data = fetch_live_cricket_score(match)
-        context.update(score_data)
-        return render(request, 'matches/watch_movie.html', context)
-
-    # OTT Entertainment Context Separation Grid
+    # 3. STRICT RELATED GRID LOGIC: Hot series me sirf hot series dikhegi, public me public!
     current_category = getattr(match, 'category', 'movie')
     if current_category == HOT_SERIES_CATEGORY:
-        related_queryset = Match.objects.filter(category=HOT_SERIES_CATEGORY)
+        related_contents = Match.objects.filter(category=HOT_SERIES_CATEGORY).exclude(id=getattr(match, 'id', None))[
+            :12]
     else:
-        related_queryset = public_matches_queryset().filter(category=current_category)
-    related_contents = related_queryset.exclude(id=getattr(match, 'id', None))[:12]
+        related_contents = public_matches_queryset().filter(category=current_category).exclude(
+            id=getattr(match, 'id', None))[:12]
 
     context = {
         'match': match,
@@ -391,61 +276,25 @@ def watch_movie(request, category, slug):
 
 def watch_match(request, match_id):
     match = get_object_or_404(Match, id=match_id)
-    if match.slug:
-        return redirect('watch_movie', category=match.category, slug=match.slug)
-    else:
-        return redirect('home')
+    return redirect('watch_movie', category=match.category, slug=match.slug or str(match.id))
 
 
 def toggle_watchlist(request, item_id):
     profile_id = request.session.get('active_profile_id')
-    if not profile_id:
-        return redirect('select_profile')
-
+    if not profile_id: return redirect('select_profile')
     profile = get_object_or_404(UserProfile, id=profile_id, user=request.user)
     item = get_object_or_404(Match, id=item_id)
-
     watchlist_item = Watchlist.objects.filter(profile=profile, item=item)
     if watchlist_item.exists():
         watchlist_item.delete()
     else:
         Watchlist.objects.create(profile=profile, item=item)
-
     return redirect(request.META.get('HTTP_REFERER', 'home'))
 
 
 def my_watchlist(request):
     profile_id = request.session.get('active_profile_id')
-    if not profile_id:
-        return redirect('select_profile')
-
+    if not profile_id: return redirect('select_profile')
     profile = get_object_or_404(UserProfile, id=profile_id, user=request.user)
     watchlist_items = Match.objects.filter(watchlist__profile=profile).order_by('-watchlist__added_at')
-
     return render(request, 'matches/watchlist.html', {'watchlist_items': watchlist_items, 'profile': profile})
-
-
-def get_match_score(request, match_id):
-    match = get_object_or_404(Match, id=match_id)
-
-    score_data = {
-        'total_runs': match.total_runs,
-        'wickets': match.wickets,
-        'overs': f"{match.overs:.1f}",
-        'current_run_rate': f"{match.current_run_rate:.2f}",
-        'target': match.target,
-        'recent_balls': match.recent_balls if isinstance(match.recent_balls, list) else [],
-        'score_history': match.score_history.get('overs_history', []) if isinstance(match.score_history, dict) else [],
-        'batsmen': match.score_history.get('batsmen', []) if isinstance(match.score_history, dict) else [],
-        'bowlers': match.score_history.get('bowlers', []) if isinstance(match.score_history, dict) else []
-    }
-
-    if match.category == 'LIVE_SPORTS' and match.is_live:
-        try:
-            live_data = fetch_live_cricket_score(match)
-            if live_data:
-                score_data.update(live_data)
-        except Exception:
-            pass
-
-    return JsonResponse(score_data)
