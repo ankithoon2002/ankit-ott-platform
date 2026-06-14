@@ -12,4 +12,5 @@ urlpatterns = [
     path('sync-movies/', views.auto_sync_movies, name='auto_sync_movies'),
     path('repair-database-slugs-9912/', views.trigger_slug_repair, name='repair_slugs'),
     path('watch_content/<str:category>/<str:slug>/', views.watch_movie, name='watch_content_fallback'),
+    path('watch_content/<str:category>/<str:slug>/', views.watch_movie, name='watch_content_fallback'),
 ]

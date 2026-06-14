@@ -1,34 +1,28 @@
 from django.core.management.base import BaseCommand
-from django.utils.text import slugify
-
 from matches.models import Match
+from django.utils.text import slugify
 
 
 class Command(BaseCommand):
-    help = "Force imported matches live and generate safe unique slugs."
+    help = 'Repairs and updates match slugs without breaking TMDB IDs'
 
     def handle(self, *args, **options):
         count = 0
-
-        for match in Match.objects.all().order_by("id"):
+        for match in Match.objects.all():
             match.is_live = True
 
-            if not match.slug or len(match.slug) < 3:
-                base_slug = slugify(match.title) or f"match-{match.id}"
-                slug = base_slug
-                suffix = 2
-
-                while Match.objects.exclude(pk=match.pk).filter(slug=slug).exists():
-                    slug = f"{base_slug}-{suffix}"
-                    suffix += 1
-
-                match.slug = slug
+            # Agar movie premium hot series hai, tabhi text slug banao
+            if match.category == 'hot_series':
+                if not match.slug or match.slug == "" or match.slug.isdigit():
+                    match.slug = slugify(match.title)
+            else:
+                # Normal TMDB movies ke liye slug unka TMDB ID hi hona chahiye
+                if match.tmdb_id:
+                    match.slug = str(match.tmdb_id)
+                elif not match.slug:
+                    match.slug = slugify(match.title)
 
             match.save()
             count += 1
 
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"SUCCESS: Forced {count} matches to live status and generated absolute unique slugs!"
-            )
-        )
+        self.stdout.write(self.style.SUCCESS(f"SUCCESS: Re-mapped {count} elements correctly!"))
