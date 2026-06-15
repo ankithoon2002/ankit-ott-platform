@@ -298,3 +298,17 @@ def my_watchlist(request):
     profile = get_object_or_404(UserProfile, id=profile_id, user=request.user)
     watchlist_items = Match.objects.filter(watchlist__profile=profile).order_by('-watchlist__added_at')
     return render(request, 'matches/watchlist.html', {'watchlist_items': watchlist_items, 'profile': profile})
+def get_match_score(request, match_id):
+    """API endpoint to get real-time score for a match (Url safety bypass)"""
+    match = get_object_or_404(Match, id=match_id)
+    return JsonResponse({
+        'total_runs': getattr(match, 'total_runs', 0),
+        'wickets': getattr(match, 'wickets', 0),
+        'overs': f"{getattr(match, 'overs', 0.0):.1f}",
+        'current_run_rate': f"{getattr(match, 'current_run_rate', 0.0):.2f}",
+        'target': getattr(match, 'target', 0),
+        'recent_balls': [],
+        'score_history': [],
+        'batsmen': [],
+        'bowlers': []
+    })
