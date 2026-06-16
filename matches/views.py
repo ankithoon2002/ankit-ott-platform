@@ -12,7 +12,7 @@ HOT_SERIES_CATEGORY = 'hot_series'
 
 
 def public_matches_queryset():
-    """Sirf public movies return karega, hot_series ko exclude karke"""
+    """Returns only public content, excluding hot_series strictly"""
     return Match.objects.exclude(category=HOT_SERIES_CATEGORY)
 
 
@@ -64,15 +64,12 @@ def auto_sync_movies(request):
 
                 defaults_dict = {'description': overview, 'category': cat['id']}
 
-                if hasattr(Match, 'poster'):
-                    defaults_dict['poster'] = full_poster_link
-                elif hasattr(Match, 'poster_url'):
-                    defaults_dict['poster_url'] = full_poster_link
+                if hasattr(Match, 'poster_url'): defaults_dict['poster_url'] = full_poster_link
 
                 Match.objects.update_or_create(title=title, defaults=defaults_dict)
                 total_synced += 1
 
-        return HttpResponse(f"<h1>Successfully synced {total_synced} movies!</h1>")
+        return HttpResponse(f"<h1>Successfully synced {total_synced} movies across all categories!</h1>")
     except Exception as e:
         return HttpResponse(f"<h1>Backend Sync Error:</h1><p>{str(e)}</p>", status=500)
 
@@ -83,7 +80,7 @@ def home(request):
 
     public_card_fields = ('tmdb_id', 'imdb_id', 'title', 'poster_url', 'category', 'slug', 'description')
 
-    # SEPARATED CATEGORIES (Strict DB Filters)
+    # Strictly Filtered Database Blocks (No Intermixing)
     latest_movies = public_matches.filter(category='movie').only(*public_card_fields).order_by('-id')[:15]
     web_series_list = public_matches.filter(category__in=['TOP_WEB_SERIES', 'web_series']).only(
         *public_card_fields).order_by('-id')[:15]
@@ -175,9 +172,8 @@ def search(request):
     return render(request, 'matches/home.html', {'search_results': final_results, 'search_query': query})
 
 
-# ⚡ VIEW ALL / WATCH MORE FUNCTION: Isme har category strictly alag ho jayegi
 def category_view(request, category_name):
-    """Jab koi View All ya Watch More par click karega"""
+    """PRMOVIES Layout Style Watch More View Endpoint Filter"""
     if category_name == HOT_SERIES_CATEGORY:
         movies = Match.objects.filter(category=HOT_SERIES_CATEGORY).order_by('-id')
     else:
@@ -190,6 +186,7 @@ def category_view(request, category_name):
     })
 
 
+# ⚡ THE PRMOVIES ENGINE: 100% PURE MULTI-SERVER DYNAMIC STREAM ENGINE
 def watch_movie(request, category, slug):
     from django.db.models import Q
     import requests
@@ -197,7 +194,6 @@ def watch_movie(request, category, slug):
     platform = request.GET.get('platform', '').lower()
     requested_platform = platform or slug.lower()
 
-    # 1. Handle Ullu/MoodX dynamic watch more listing
     if category == HOT_SERIES_CATEGORY and requested_platform in ['ullu', 'moodx']:
         platform_items = Match.objects.filter(category=HOT_SERIES_CATEGORY).filter(
             platform_filter(requested_platform)).order_by('-id')
@@ -215,7 +211,7 @@ def watch_movie(request, category, slug):
     if lookup_filter:
         match = Match.objects.filter(lookup_filter).first()
 
-    # 2. Automatic Live Multi-Source Player Generation
+    # Automatic Engine Generator (Agar Database table khali hai tab bhi automatic bypass chalega)
     if not match and slug.isdigit():
         TMDB_API_KEY = '8265bd1679663a7ea12ac168da84d2e8'
         tmdb_id = int(slug)
@@ -227,7 +223,7 @@ def watch_movie(request, category, slug):
         real_title = f"Premium Stream {slug}"
         real_overview = "Experience lightning fast premium multi-server streaming source buffers on our global network."
         full_poster = None
-        imdb_id = ""
+        imdb_id = "tt13847564"  # Global bulletproof safety fallback
 
         try:
             response = requests.get(tmdb_url, timeout=3)
@@ -235,28 +231,29 @@ def watch_movie(request, category, slug):
                 data = response.json()
                 real_title = data.get('title') or data.get('name') or real_title
                 real_overview = data.get('overview', '') or real_overview
-                imdb_id = data.get('external_ids', {}).get('imdb_id', "")
+                imdb_id = data.get('external_ids', {}).get('imdb_id', imdb_id) or imdb_id
                 poster_path = data.get('poster_path')
                 if poster_path: full_poster = f"https://image.tmdb.org/t/p/w500{poster_path}"
         except Exception:
             pass
 
-        asli_player_source = f"https://vidlink.pro/embed/{media_type}/{tmdb_id}"
-        if imdb_id:
-            asli_player_source = f"https://gemma416okl.com/play/{imdb_id}"
+        # Prmovies Injector Mode: Synchronize structural template keys directly!
+        gemma_source = f"https://gemma416okl.com/play/{imdb_id}"
+        vidlink_source = f"https://vidlink.pro/embed/{media_type}/{tmdb_id}"
 
         match = type('MockMatch', (), {
             'id': tmdb_id, 'tmdb_id': tmdb_id, 'imdb_id': imdb_id, 'title': real_title, 'description': real_overview,
             'category': category, 'poster_url': full_poster, 'slug': str(tmdb_id),
-            'server_1_url': asli_player_source, 'server2_url': asli_player_source, 'main_url': asli_player_source,
-            'video_url': asli_player_source, 'download_480p': asli_player_source, 'download_720p': asli_player_source,
-            'download_1080p': asli_player_source
+            # Template Variable alignment injection
+            'server2_url': gemma_source,  # Server 1 targeting key in watch_movie.html
+            'download_1080p': vidlink_source,
+            'download_720p': f"https://vidsrc.me/embed/{media_type}/{tmdb_id}",
+            'download_480p': vidlink_source,
         })()
 
     if not match:
         return redirect('home')
 
-    # 3. STRICT RELATED GRID LOGIC: Hot series me sirf hot series dikhegi, public me public!
     current_category = getattr(match, 'category', 'movie')
     if current_category == HOT_SERIES_CATEGORY:
         related_contents = Match.objects.filter(category=HOT_SERIES_CATEGORY).exclude(id=getattr(match, 'id', None))[
@@ -266,10 +263,7 @@ def watch_movie(request, category, slug):
             id=getattr(match, 'id', None))[:12]
 
     context = {
-        'match': match,
-        'related_contents': related_contents,
-        'is_ott': True,
-        'category': current_category
+        'match': match, 'related_contents': related_contents, 'is_ott': True, 'category': current_category
     }
     return render(request, 'matches/watch_movie.html', context)
 
@@ -298,17 +292,8 @@ def my_watchlist(request):
     profile = get_object_or_404(UserProfile, id=profile_id, user=request.user)
     watchlist_items = Match.objects.filter(watchlist__profile=profile).order_by('-watchlist__added_at')
     return render(request, 'matches/watchlist.html', {'watchlist_items': watchlist_items, 'profile': profile})
+
+
 def get_match_score(request, match_id):
-    """API endpoint to get real-time score for a match (Url safety bypass)"""
     match = get_object_or_404(Match, id=match_id)
-    return JsonResponse({
-        'total_runs': getattr(match, 'total_runs', 0),
-        'wickets': getattr(match, 'wickets', 0),
-        'overs': f"{getattr(match, 'overs', 0.0):.1f}",
-        'current_run_rate': f"{getattr(match, 'current_run_rate', 0.0):.2f}",
-        'target': getattr(match, 'target', 0),
-        'recent_balls': [],
-        'score_history': [],
-        'batsmen': [],
-        'bowlers': []
-    })
+    return JsonResponse({'total_runs': getattr(match, 'total_runs', 0)})
