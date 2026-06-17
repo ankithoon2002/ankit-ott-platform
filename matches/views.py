@@ -211,7 +211,7 @@ def watch_movie(request, category, slug):
     if lookup_filter:
         match = Match.objects.filter(lookup_filter).first()
 
-    # Automatic Engine Generator (Agar Database table khali hai tab bhi automatic bypass chalega)
+    # Automatic Engine Generator (Bypass mode)
     if not match and slug.isdigit():
         TMDB_API_KEY = '8265bd1679663a7ea12ac168da84d2e8'
         tmdb_id = int(slug)
@@ -223,7 +223,7 @@ def watch_movie(request, category, slug):
         real_title = f"Premium Stream {slug}"
         real_overview = "Experience lightning fast premium multi-server streaming source buffers on our global network."
         full_poster = None
-        imdb_id = "tt13847564"  # Global bulletproof safety fallback
+        imdb_id = "tt13847564"
 
         try:
             response = requests.get(tmdb_url, timeout=3)
@@ -237,15 +237,13 @@ def watch_movie(request, category, slug):
         except Exception:
             pass
 
-        # Prmovies Injector Mode: Synchronize structural template keys directly!
         gemma_source = f"https://gemma416okl.com/play/{imdb_id}"
         vidlink_source = f"https://vidlink.pro/embed/{media_type}/{tmdb_id}"
 
         match = type('MockMatch', (), {
             'id': tmdb_id, 'tmdb_id': tmdb_id, 'imdb_id': imdb_id, 'title': real_title, 'description': real_overview,
             'category': category, 'poster_url': full_poster, 'slug': str(tmdb_id),
-            # Template Variable alignment injection
-            'server2_url': gemma_source,  # Server 1 targeting key in watch_movie.html
+            'server2_url': gemma_source,  # Server 1 maps here in your html template
             'download_1080p': vidlink_source,
             'download_720p': f"https://vidsrc.me/embed/{media_type}/{tmdb_id}",
             'download_480p': vidlink_source,
