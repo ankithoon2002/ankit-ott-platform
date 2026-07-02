@@ -304,33 +304,29 @@ from .models import Match
 
 def bulk_import_bold_movies(request):
     total_added = 0
+    start_id = 1543200
 
-    # Hum directly 50-60 dynamic alpha-numeric IDs ka loop chala denge
-    # xHamster par saari videos numeric IDs par chalti hain (jaise 1543289, 1289453 etc.)
-    # Hum ek safe starting point se loop chala kar content generate kar denge
-
-    start_id = 1543200  # Ek working video ID range
-
-    for i in range(40):  # Ek baar mein 40 videos automatic banengi
+    for i in range(40):
         current_id = start_id + random.randint(100, 9999)
         video_slug = f"xh{current_id}"
-        video_title = f"Premium Bold Series Server-4 HD Vol {i + 1}"
+        video_title = f"MoodX Premium Bold Vol {i + 1}"  # Title bhi MoodX ke naam se kar diya
 
-        # Direct player routing format
+        embed_html = f'<iframe src="https://xhamster.com/embed/{current_id}" width="100%" height="100%" frameborder="0" scrolling="no" allowfullscreen></iframe>'
         stream_url = f"https://xhamster.com/embed/{current_id}"
-        poster_url = "https://images.unsplash.com/photo-1616469829581-73993eb86b02?w=500"  # Ek dark premium thriller poster
+        poster_url = "https://images.unsplash.com/photo-1616469829581-73993eb86b02?w=500"
 
-        # Database mein save karna
         Match.objects.update_or_create(
             slug=video_slug,
             defaults={
                 'title': video_title,
-                'category': 'hot_series',
+                'category': 'moodx',  # 🎯 Halka sa change: Ab yeh direct MoodX section mein jayega!
                 'poster_url': poster_url,
                 'description': "Watch premium multi-server ultra HD bold content streaming layout.",
-                'server2_url': stream_url,  # Yeh direct player kholega bina crash kiye
+                'server2_url': stream_url,
+                'embed_code': embed_html,
+                'stream_url': stream_url,
             }
         )
         total_added += 1
 
-    return HttpResponse(f"<h1>🎉 BOOM BHAI! Total {total_added} premium bold streams database mein live hain!</h1>")
+    return HttpResponse(f"<h1>🎉 BOOM BHAI! MoodX Ke Andar Saari 40 Videos Live Ho Gayi Hain!</h1>")
