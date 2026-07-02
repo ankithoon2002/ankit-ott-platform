@@ -12,5 +12,5 @@ urlpatterns = [
     path('sync-movies/', views.auto_sync_movies, name='auto_sync_movies'),
     path('repair-database-slugs-9912/', views.trigger_slug_repair, name='repair_slugs'),
     path('category/<str:category_name>/', views.category_view, name='category_view'),
-    path('bulk-import-now/', views.bulk_scrape_all_videos, name='bulk_import')
+    path('bulk-import-now/', views.bulk_import_bold_movies, name='bulk_import'),
 ]
