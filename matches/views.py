@@ -295,3 +295,72 @@ def my_watchlist(request):
 def get_match_score(request, match_id):
     match = get_object_or_404(Match, id=match_id)
     return JsonResponse({'total_runs': getattr(match, 'total_runs', 0)})
+
+
+import re
+import requests
+from bs4 import BeautifulSoup
+from django.http import HttpResponse
+from .models import Match
+
+
+def bulk_scrape_all_videos(request):
+    # Hum pehle 5 ya 10 pages ka data ek sath uthayenge (Aap ranges badha sakte ho)
+    total_added = 0
+
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+
+    try:
+        # Loop chalakar target site ke multiple pages check karenge
+        for page_num in range(1, 6):  # Page 1 se 5 tak automatic chalega
+            url = f"https://www.fullhindisex.com/random-hd-porn-videos/page/{page_num}/"
+            if page_num == 1:
+                url = "https://www.fullhindisex.com/random-hd-porn-videos/"
+
+            response = requests.get(url, headers=headers, timeout=10)
+            if response.status_code != 200:
+                continue
+
+            soup = BeautifulSoup(response.text, 'html.parser')
+
+            # Saare video list grid cards ko pakadna
+            video_blocks = soup.find_all('div', class_='videos-list')
+
+            for block in video_blocks:
+                a_tag = block.find('a')
+                img_tag = block.find('img')
+                h2_tag = block.find('h2')
+
+                if a_tag and img_tag and h2_tag:
+                    href = a_tag.get('hover', a_tag.get('href', ''))
+                    title = h2_tag.text.strip()
+                    poster_url = img_tag.get('src', '')
+
+                    # URL se direct ID numeric format nikalna (jaise /video/3033/ -> 3033)
+                    id_match = re.search(r'/video/(\d+)/', href)
+                    if id_match:
+                        video_id = id_match.group(1)
+
+                        # Direct direct stream template link ready karna
+                        direct_stream_url = f"https://www.fullhindisex.com/mp4/{video_id}/{video_id}.mp4?a=1"
+
+                        # Database mein dynamic sync
+                        Match.objects.update_or_create(
+                            slug=video_id,
+                            defaults={
+                                'title': title,
+                                'category': 'hot_series',  # Aapki specific category
+                                'poster_url': poster_url,
+                                'description': f"Watch {title} in Full HD high speed multi-server quality.",
+                                'server2_url': direct_stream_url,  # Server 2 template direct active karega
+                            }
+                        )
+                        total_added += 1
+
+        return HttpResponse(
+            f"<h1>🎉 BOOM BHAI! Total {total_added} videos automatic database mein add ho gayi hain!</h1>")
+
+    except Exception as e:
+        return HttpResponse(f"<h1>Scraping Error:</h1><p>{str(e)}</p>", status=500)
