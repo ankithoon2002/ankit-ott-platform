@@ -98,7 +98,7 @@ DATABASES = {
 }
 
 if os.environ.get('DATABASE_URL'):
-    DATABASES['default'] = dj_database_url.config(conn_max_age=600)
+    DATABASES['default'] = dj_database_url.config(conn_max_age=00)
 else:
     # Use SQLite for local development if PostgreSQL driver is missing or no DB_URL
     try:
